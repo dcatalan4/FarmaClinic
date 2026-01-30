@@ -24,7 +24,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <div id="sugerencias" class="list-group position-absolute shadow-lg" style="z-index: 1000; display: none; max-height: 300px; overflow-y: auto; border-radius: 0.375rem;"></div>
+                            <div id="sugerencias" class="mt-1" style="position: relative; z-index: 1000;"></div>
                         </div>
                     </div>
 
@@ -85,157 +85,167 @@
 
 @section Scripts {
     <script>
-        // Datos de productos para autocompletar
-        let productos = [];
-        
-        try {
-            productos = @Html.Raw(Json.Serialize(Model.Select(p => new { 
-                p.IdProducto, 
-                p.Codigo, 
-                p.Nombre, 
-                Descripcion = p.Descripcion ?? "" 
-            })));
-            console.log('Productos cargados:', productos.length);
-        } catch (error) {
-            console.error('Error al cargar productos:', error);
-            productos = [];
+        let searchTimeout;
+
+        // Inicializar el buscador
+        document.addEventListener('DOMContentLoaded', function() {
+            const buscador = document.getElementById('busquedaRapida');
+            const sugerenciasDiv = document.getElementById('sugerencias');
+            
+            if (!buscador) return;
+
+            // Evento de input para autocompletado
+            buscador.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const term = this.value.trim();
+                
+                if (term.length < 2) {
+                    sugerenciasDiv.innerHTML = '';
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    buscarProductos(term);
+                }, 300);
+            });
+
+            // Evento focus para mostrar sugerencias
+            buscador.addEventListener('focus', function() {
+                if (this.value.trim().length >= 2) {
+                    buscarProductos(this.value.trim());
+                }
+            });
+
+            // Cerrar sugerencias al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!buscador.contains(e.target) && !sugerenciasDiv.contains(e.target)) {
+                    sugerenciasDiv.innerHTML = '';
+                }
+            });
+
+            // Evento Enter para buscar
+            buscador.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    buscarRapido();
+                }
+            });
+        });
+
+        // Función para buscar productos via AJAX
+        async function buscarProductos(term) {
+            try {
+                const response = await fetch(`/InventarioLector/BuscarProductos?term=${encodeURIComponent(term)}`);
+                const productos = await response.json();
+                
+                const sugerenciasDiv = document.getElementById('sugerencias');
+                
+                if (productos.length > 0) {
+                    let html = '<div class="list-group" style="position: absolute; width: 100%; max-height: 200px; overflow-y: auto; z-index: 1000;">';
+                    
+                    productos.forEach(producto => {
+                        const nombreEscapado = (producto.nombre || '').replace(/'/g, "\\'");
+                        const descripcionCorta = producto.descripcion ? 
+                            (producto.descripcion.length > 50 ? producto.descripcion.substring(0, 50) + '...' : producto.descripcion) : 
+                            'Sin descripción';
+                        
+                        html += `
+                            <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarProducto('${producto.codigo}', '${nombreEscapado}')">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${producto.codigo} - ${producto.nombre}</h6>
+                                    <small class="text-muted">Q ${producto.precioVenta.toFixed(2)}</small>
+                                </div>
+                                <p class="mb-1 text-muted small">${descripcionCorta}</p>
+                                <small class="text-muted">Stock: ${producto.stock}</small>
+                            </a>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    sugerenciasDiv.innerHTML = html;
+                } else {
+                    sugerenciasDiv.innerHTML = '<div class="alert alert-info py-2">No se encontraron productos</div>';
+                }
+            } catch (error) {
+                console.error('Error al buscar productos:', error);
+                document.getElementById('sugerencias').innerHTML = '<div class="alert alert-danger py-2">Error al buscar productos</div>';
+            }
         }
-        
-        let indiceSugerenciaSeleccionado = -1;
-        
+
+        // Función para seleccionar un producto del autocompletado
         function seleccionarProducto(codigo, nombre) {
             document.getElementById('busquedaRapida').value = codigo + ' - ' + nombre;
-            document.getElementById('sugerencias').style.display = 'none';
-            buscarRapida();
+            document.getElementById('sugerencias').innerHTML = '';
+            buscarRapido();
         }
-        
-        function buscarRapida() {
-            const termino = document.getElementById('busquedaRapida').value.trim();
+
+        // Función para filtrar la tabla (botón lupa)
+        function buscarRapido() {
+            const termino = document.getElementById('busquedaRapida').value.trim().toLowerCase();
+            
             if (termino === '') {
                 mostrarTodos();
                 return;
             }
             
             const filas = document.querySelectorAll('#inventarioTable tbody tr');
+            let encontrados = 0;
+            
             filas.forEach(function(fila) {
                 const texto = fila.textContent.toLowerCase();
-                if (texto.includes(termino.toLowerCase())) {
+                if (texto.includes(termino)) {
                     fila.style.display = '';
+                    encontrados++;
                 } else {
                     fila.style.display = 'none';
                 }
             });
             
-            // Ocultar sugerencias al buscar
-            document.getElementById('sugerencias').style.display = 'none';
+            // Ocultar sugerencias
+            document.getElementById('sugerencias').innerHTML = '';
+            
+            // Mostrar mensaje si no hay resultados
+            if (encontrados === 0) {
+                mostrarMensajeSinResultados();
+            } else {
+                ocultarMensajeSinResultados();
+            }
         }
-        
+
+        // Función para mostrar todos los productos
         function mostrarTodos() {
             const filas = document.querySelectorAll('#inventarioTable tbody tr');
             filas.forEach(function(fila) {
                 fila.style.display = '';
             });
+            ocultarMensajeSinResultados();
         }
-        
-        function mostrarSugerencias(termino) {
-            console.log('Mostrando sugerencias para:', termino);
-            const sugerenciasDiv = document.getElementById('sugerencias');
-            
-            if (termino.length < 2) {
-                sugerenciasDiv.style.display = 'none';
-                return;
+
+        // Función para mostrar mensaje sin resultados
+        function mostrarMensajeSinResultados() {
+            let mensajeDiv = document.getElementById('mensajeSinResultados');
+            if (!mensajeDiv) {
+                mensajeDiv = document.createElement('div');
+                mensajeDiv.id = 'mensajeSinResultados';
+                mensajeDiv.className = 'alert alert-warning mt-3';
+                mensajeDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No se encontraron productos que coincidan con la búsqueda.';
+                document.querySelector('#inventarioTable').parentNode.insertBefore(mensajeDiv, document.querySelector('#inventarioTable').nextSibling);
             }
-            
-            const filtrados = productos.filter(p => {
-                const codigo = (p.Codigo || '').toString().toLowerCase();
-                const nombre = (p.Nombre || '').toString().toLowerCase();
-                const descripcion = (p.Descripcion || '').toString().toLowerCase();
-                
-                return codigo.includes(termino.toLowerCase()) ||
-                       nombre.includes(termino.toLowerCase()) ||
-                       descripcion.includes(termino.toLowerCase());
-            }).slice(0, 5);
-            
-            console.log('Productos filtrados:', filtrados.length);
-            
-            if (filtrados.length === 0) {
-                sugerenciasDiv.style.display = 'none';
-                return;
-            }
-            
-            let html = '';
-            filtrados.forEach(p => {
-                const descripcionCorta = p.Descripcion ? (p.Descripcion.length > 50 ? p.Descripcion.substring(0, 50) + '...' : p.Descripcion) : '';
-                html += `
-                    <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarProducto('${p.Codigo || ''}', '${(p.Nombre || '').replace(/'/g, "\\'")}')">
-                        <div class="d-flex w-100 justify-content-between">
-                            <div>
-                                <strong>${p.Codigo || ''}</strong> - ${p.Nombre || ''}
-                                ${descripcionCorta ? `<br><small class="text-muted">${descripcionCorta}</small>` : ''}
-                            </div>
-                            <small class="text-primary">Click para seleccionar</small>
-                        </div>
-                    </a>
-                `;
-            });
-            
-            sugerenciasDiv.innerHTML = html;
-            sugerenciasDiv.style.display = 'block';
-            console.log('Sugerencias mostradas');
         }
-        
-        // Event listeners
-        document.getElementById('busquedaRapida').addEventListener('input', function(e) {
-            console.log('Input event:', e.target.value);
-            indiceSugerenciaSeleccionado = -1;
-            mostrarSugerencias(e.target.value);
-        });
-        
-        document.getElementById('busquedaRapida').addEventListener('keydown', function(e) {
-            console.log('Keydown event:', e.key);
-            const sugerenciasDiv = document.getElementById('sugerencias');
-            const items = sugerenciasDiv.querySelectorAll('.list-group-item');
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                indiceSugerenciaSeleccionado = Math.min(indiceSugerenciaSeleccionado + 1, items.length - 1);
-                actualizarSeleccionSugerencia(items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                indiceSugerenciaSeleccionado = Math.max(indiceSugerenciaSeleccionado - 1, -1);
-                actualizarSeleccionSugerencia(items);
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (indiceSugerenciaSeleccionado >= 0 && items[indiceSugerenciaSeleccionado]) {
-                    items[indiceSugerenciaSeleccionado].click();
-                } else {
-                    buscarRapida();
-                }
-            } else if (e.key === 'Escape') {
-                sugerenciasDiv.style.display = 'none';
-                indiceSugerenciaSeleccionado = -1;
+
+        // Función para ocultar mensaje sin resultados
+        function ocultarMensajeSinResultados() {
+            const mensajeDiv = document.getElementById('mensajeSinResultados');
+            if (mensajeDiv) {
+                mensajeDiv.remove();
             }
-        });
-        
-        function actualizarSeleccionSugerencia(items) {
-            items.forEach((item, index) => {
-                if (index === indiceSugerenciaSeleccionado) {
-                    item.classList.add('active');
-                    item.scrollIntoView({ block: 'nearest' });
-                } else {
-                    item.classList.remove('active');
-                }
-            });
         }
-        
-        // Cerrar sugerencias al hacer clic fuera
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('#busquedaRapida') && !e.target.closest('#sugerencias')) {
-                document.getElementById('sugerencias').style.display = 'none';
-            }
-        });
-        
-        // Inicialización
-        console.log('Autocompletar inicializado');
+
+        // Función para limpiar búsqueda
+        function limpiarBusqueda() {
+            document.getElementById('busquedaRapida').value = '';
+            document.getElementById('sugerencias').innerHTML = '';
+            mostrarTodos();
+        }
     </script>
 }

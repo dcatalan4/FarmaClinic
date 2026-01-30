@@ -28,6 +28,38 @@ namespace ControlInventario.Controllers
             return View(productos);
         }
 
+        // GET: InventarioLector/BuscarProductos
+        [HttpGet]
+        public async Task<IActionResult> BuscarProductos(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return Json(new object[0]);
+            }
+
+            var termLower = term.ToLower();
+            
+            var productos = await _context.Productos
+                .Where(p => p.Activo && (
+                    EF.Functions.Like(p.Codigo.ToLower(), $"%{termLower}%") ||
+                    EF.Functions.Like(p.Nombre.ToLower(), $"%{termLower}%") ||
+                    (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{termLower}%"))
+                ))
+                .Select(p => new
+                {
+                    id = p.IdProducto,
+                    codigo = p.Codigo,
+                    nombre = p.Nombre,
+                    descripcion = p.Descripcion,
+                    precioVenta = p.PrecioVenta,
+                    stock = p.StockActual
+                })
+                .Take(10)
+                .ToListAsync();
+
+            return Json(productos);
+        }
+
         // GET: InventarioLector/Details/5
         public async Task<IActionResult> Details(int? id)
         {
