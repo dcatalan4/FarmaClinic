@@ -10,6 +10,11 @@ using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurar para evitar problemas de inotify en producción
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false);
+builder.Configuration.AddEnvironmentVariables();
+
 // Configurar cultura para Guatemala (Quetzales)
 var cultureInfo = new CultureInfo("es-GT");
 cultureInfo.NumberFormat.CurrencySymbol = "Q";
