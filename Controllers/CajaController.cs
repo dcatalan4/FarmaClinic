@@ -61,10 +61,11 @@ namespace ControlInventario.Controllers
         {
             var cajaPrincipal = await _context.Cajas
                 .Where(c => c.Activa == true)
-                .FirstOrDefaultAsync() ?? await _context.Cajas.FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();
 
             if (cajaPrincipal == null)
             {
+                TempData["Error"] = "No hay una caja principal activa.";
                 return RedirectToAction("Index");
             }
 
@@ -75,13 +76,15 @@ namespace ControlInventario.Controllers
             // Aplicar filtros de fecha si se proporcionan
             if (fechaInicio.HasValue)
             {
-                var inicio = fechaInicio.Value.Date;
-                query = query.Where(m => m.Fecha.HasValue && m.Fecha.Value.Date >= inicio);
+                // Convertir a UTC para comparar con fechas guardadas en UTC
+                var inicio = DateTime.SpecifyKind(fechaInicio.Value.Date, DateTimeKind.Utc);
+                query = query.Where(m => m.Fecha.HasValue && m.Fecha.Value >= inicio);
             }
 
             if (fechaFin.HasValue)
             {
-                var fin = fechaFin.Value.Date.AddDays(1).AddTicks(-1); // Fin del día
+                // Fin del día en UTC (23:59:59)
+                var fin = DateTime.SpecifyKind(fechaFin.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
                 query = query.Where(m => m.Fecha.HasValue && m.Fecha.Value <= fin);
             }
 

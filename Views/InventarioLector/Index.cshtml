@@ -17,14 +17,14 @@
                     <div class="row mb-3">
                         <div class="col-12">
                             <div class="input-group">
-                                <input type="text" id="busquedaRapida" class="form-control" placeholder="Buscar producto..." autocomplete="off">
+                                <input type="text" id="busquedaRapida" class="form-control" placeholder="Buscar producto por código, nombre o descripción..." autocomplete="off">
                                 <div class="input-group-append">
                                     <button class="btn btn-outline-secondary" type="button" onclick="buscarRapido()">
                                         <i class="fas fa-search"></i>
                                     </button>
                                 </div>
                             </div>
-                            <div id="sugerencias" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></div>
+                            <div id="sugerencias" class="list-group position-absolute shadow-lg" style="z-index: 1000; display: none; max-height: 300px; overflow-y: auto; border-radius: 0.375rem;"></div>
                         </div>
                     </div>
 
@@ -86,9 +86,30 @@
 @section Scripts {
     <script>
         // Datos de productos para autocompletar
-        const productos = @Html.Raw(Json.Serialize(Model.Select(p => new { p.IdProducto, p.Codigo, p.Nombre, p.Descripcion })));
+        let productos = [];
         
-        function buscarRapido() {
+        try {
+            productos = @Html.Raw(Json.Serialize(Model.Select(p => new { 
+                p.IdProducto, 
+                p.Codigo, 
+                p.Nombre, 
+                Descripcion = p.Descripcion ?? "" 
+            })));
+            console.log('Productos cargados:', productos.length);
+        } catch (error) {
+            console.error('Error al cargar productos:', error);
+            productos = [];
+        }
+        
+        let indiceSugerenciaSeleccionado = -1;
+        
+        function seleccionarProducto(codigo, nombre) {
+            document.getElementById('busquedaRapida').value = codigo + ' - ' + nombre;
+            document.getElementById('sugerencias').style.display = 'none';
+            buscarRapida();
+        }
+        
+        function buscarRapida() {
             const termino = document.getElementById('busquedaRapida').value.trim();
             if (termino === '') {
                 mostrarTodos();
@@ -117,6 +138,7 @@
         }
         
         function mostrarSugerencias(termino) {
+            console.log('Mostrando sugerencias para:', termino);
             const sugerenciasDiv = document.getElementById('sugerencias');
             
             if (termino.length < 2) {
@@ -124,11 +146,17 @@
                 return;
             }
             
-            const filtrados = productos.filter(p => 
-                p.Codigo.toLowerCase().includes(termino.toLowerCase()) ||
-                p.Nombre.toLowerCase().includes(termino.toLowerCase()) ||
-                (p.Descripcion && p.Descripcion.toLowerCase().includes(termino.toLowerCase()))
-            ).slice(0, 5);
+            const filtrados = productos.filter(p => {
+                const codigo = (p.Codigo || '').toString().toLowerCase();
+                const nombre = (p.Nombre || '').toString().toLowerCase();
+                const descripcion = (p.Descripcion || '').toString().toLowerCase();
+                
+                return codigo.includes(termino.toLowerCase()) ||
+                       nombre.includes(termino.toLowerCase()) ||
+                       descripcion.includes(termino.toLowerCase());
+            }).slice(0, 5);
+            
+            console.log('Productos filtrados:', filtrados.length);
             
             if (filtrados.length === 0) {
                 sugerenciasDiv.style.display = 'none';
@@ -137,33 +165,68 @@
             
             let html = '';
             filtrados.forEach(p => {
+                const descripcionCorta = p.Descripcion ? (p.Descripcion.length > 50 ? p.Descripcion.substring(0, 50) + '...' : p.Descripcion) : '';
                 html += `
-                    <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarProducto('${p.Codigo}', '${p.Nombre.replace(/'/g, "\\'")}')">
-                        <strong>${p.Codigo}</strong> - ${p.Nombre}
+                    <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarProducto('${p.Codigo || ''}', '${(p.Nombre || '').replace(/'/g, "\\'")}')">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                                <strong>${p.Codigo || ''}</strong> - ${p.Nombre || ''}
+                                ${descripcionCorta ? `<br><small class="text-muted">${descripcionCorta}</small>` : ''}
+                            </div>
+                            <small class="text-primary">Click para seleccionar</small>
+                        </div>
                     </a>
                 `;
             });
             
             sugerenciasDiv.innerHTML = html;
             sugerenciasDiv.style.display = 'block';
-        }
-        
-        function seleccionarProducto(codigo, nombre) {
-            document.getElementById('busquedaRapida').value = codigo + ' - ' + nombre;
-            document.getElementById('sugerencias').style.display = 'none';
-            buscarRapido();
+            console.log('Sugerencias mostradas');
         }
         
         // Event listeners
         document.getElementById('busquedaRapida').addEventListener('input', function(e) {
+            console.log('Input event:', e.target.value);
+            indiceSugerenciaSeleccionado = -1;
             mostrarSugerencias(e.target.value);
         });
         
-        document.getElementById('busquedaRapida').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                buscarRapido();
+        document.getElementById('busquedaRapida').addEventListener('keydown', function(e) {
+            console.log('Keydown event:', e.key);
+            const sugerenciasDiv = document.getElementById('sugerencias');
+            const items = sugerenciasDiv.querySelectorAll('.list-group-item');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                indiceSugerenciaSeleccionado = Math.min(indiceSugerenciaSeleccionado + 1, items.length - 1);
+                actualizarSeleccionSugerencia(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                indiceSugerenciaSeleccionado = Math.max(indiceSugerenciaSeleccionado - 1, -1);
+                actualizarSeleccionSugerencia(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (indiceSugerenciaSeleccionado >= 0 && items[indiceSugerenciaSeleccionado]) {
+                    items[indiceSugerenciaSeleccionado].click();
+                } else {
+                    buscarRapida();
+                }
+            } else if (e.key === 'Escape') {
+                sugerenciasDiv.style.display = 'none';
+                indiceSugerenciaSeleccionado = -1;
             }
         });
+        
+        function actualizarSeleccionSugerencia(items) {
+            items.forEach((item, index) => {
+                if (index === indiceSugerenciaSeleccionado) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
         
         // Cerrar sugerencias al hacer clic fuera
         document.addEventListener('click', function(e) {
@@ -171,5 +234,8 @@
                 document.getElementById('sugerencias').style.display = 'none';
             }
         });
+        
+        // Inicialización
+        console.log('Autocompletar inicializado');
     </script>
 }

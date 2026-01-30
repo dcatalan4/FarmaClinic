@@ -7,6 +7,7 @@ namespace ControlInventario.Services
     {
         Task<decimal> ObtenerSaldoInicialAsync(int idCaja, DateTime fecha);
         Task<decimal> ObtenerSaldoFinalAsync(int idCaja, DateTime fecha);
+        Task<decimal> ObtenerSaldoActualAsync(int idCaja);
         Task GuardarSaldoDiarioAsync(int idCaja, DateTime fecha, decimal saldoInicial, decimal saldoFinal, 
             decimal totalIngresos, decimal totalEgresos, int idUsuario);
         Task CerrarDiaAsync(int idCaja, DateTime fecha, int idUsuario);
@@ -56,6 +57,12 @@ namespace ControlInventario.Services
             var totalEgresos = movimientosDia.Where(m => m.TipoMovimiento == "E").Sum(m => m.Monto);
 
             return saldoInicial + totalIngresos - totalEgresos;
+        }
+
+        public async Task<decimal> ObtenerSaldoActualAsync(int idCaja)
+        {
+            var caja = await _context.Cajas.FindAsync(idCaja);
+            return caja?.SaldoActual ?? 0;
         }
 
         public async Task GuardarSaldoDiarioAsync(int idCaja, DateTime fecha, decimal saldoInicial, 

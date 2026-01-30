@@ -23,13 +23,13 @@ namespace ControlInventario.Controllers
             int pageSize = 10;
             var query = _context.Productos.AsQueryable();
 
-            // Aplicar filtro de búsqueda
+            // Aplicar filtro de búsqueda (case-insensitive)
             if (!string.IsNullOrWhiteSpace(busqueda))
             {
                 query = query.Where(p => 
-                    p.Codigo.Contains(busqueda) ||
-                    p.Nombre.Contains(busqueda) ||
-                    (p.Descripcion != null && p.Descripcion.Contains(busqueda))
+                    EF.Functions.Like(p.Codigo.ToLower(), $"%{busqueda.ToLower()}%") ||
+                    EF.Functions.Like(p.Nombre.ToLower(), $"%{busqueda.ToLower()}%") ||
+                    (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{busqueda.ToLower()}%"))
                 );
             }
 
@@ -342,9 +342,9 @@ namespace ControlInventario.Controllers
             {
                 var productos = await _context.Productos
                     .Where(p => p.Activo == true && (
-                        p.Codigo.Contains(termino) ||
-                        p.Nombre.Contains(termino) ||
-                        (p.Descripcion != null && p.Descripcion.Contains(termino))
+                        EF.Functions.Like(p.Codigo.ToLower(), $"%{termino.ToLower()}%") ||
+                        EF.Functions.Like(p.Nombre.ToLower(), $"%{termino.ToLower()}%") ||
+                        (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{termino.ToLower()}%"))
                     ))
                     .OrderBy(p => p.Nombre)
                     .Select(p => new

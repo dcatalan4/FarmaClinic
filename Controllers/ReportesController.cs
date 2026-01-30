@@ -152,6 +152,10 @@ namespace ControlInventario.Controllers
         [HttpPost]
         public async Task<IActionResult> Caja(DateTime fechaInicio, DateTime fechaFin)
         {
+            Console.WriteLine($"=== INICIO REPORTE CAJA ===");
+            Console.WriteLine($"Fecha Inicio: {fechaInicio:yyyy-MM-dd}");
+            Console.WriteLine($"Fecha Fin: {fechaFin:yyyy-MM-dd}");
+            
             // Obtener caja principal
             var cajaPrincipal = await _context.Cajas
                 .Where(c => c.Activa == true)
@@ -159,6 +163,7 @@ namespace ControlInventario.Controllers
 
             if (cajaPrincipal == null)
             {
+                Console.WriteLine("ERROR: No hay caja principal activa");
                 return View(new CajaReporteViewModel
                 {
                     FechaInicio = fechaInicio,
@@ -170,11 +175,19 @@ namespace ControlInventario.Controllers
                 });
             }
 
+            Console.WriteLine($"Caja encontrada: ID={cajaPrincipal.IdCaja}, SaldoActual={cajaPrincipal.SaldoActual}");
+
             // Obtener movimientos del período usando el nuevo servicio
             var movimientos = await _movimientoCajaService.ObtenerMovimientosPorPeriodoAsync(
                 cajaPrincipal.IdCaja, fechaInicio, fechaFin);
 
-            Console.WriteLine($"Se encontraron {movimientos.Count} movimientos");
+            Console.WriteLine($"Se encontraron {movimientos.Count} movimientos en el período");
+
+            // Mostrar detalles de movimientos
+            foreach (var mov in movimientos.Take(5))
+            {
+                Console.WriteLine($"  Movimiento: {mov.Fecha:yyyy-MM-dd HH:mm} | {mov.TipoMovimiento} | {mov.Monto:C} | Saldo: {mov.SaldoEnMomento:C}");
+            }
 
             // Obtener saldo inicial (primer movimiento del período o saldo actual de caja si no hay movimientos)
             decimal saldoInicial = 0;
@@ -189,11 +202,13 @@ namespace ControlInventario.Controllers
                     .FirstOrDefaultAsync();
 
                 saldoInicial = ultimoMovimientoAnterior?.SaldoEnMomento ?? 0;
+                Console.WriteLine($"Saldo inicial calculado desde movimiento anterior: {saldoInicial:C}");
             }
             else
             {
                 // Si no hay movimientos en el período, usar el saldo actual de la caja
                 saldoInicial = await _movimientoCajaService.ObtenerSaldoActualAsync(cajaPrincipal.IdCaja);
+                Console.WriteLine($"Saldo inicial desde saldo actual de caja: {saldoInicial:C}");
             }
 
             // Obtener saldo final (último movimiento del período o saldo actual si no hay movimientos)
@@ -201,16 +216,19 @@ namespace ControlInventario.Controllers
             if (movimientos.Any())
             {
                 saldoFinal = movimientos.Last().SaldoEnMomento;
+                Console.WriteLine($"Saldo final desde último movimiento: {saldoFinal:C}");
             }
             else
             {
                 saldoFinal = await _movimientoCajaService.ObtenerSaldoActualAsync(cajaPrincipal.IdCaja);
+                Console.WriteLine($"Saldo final desde saldo actual de caja: {saldoFinal:C}");
             }
 
             Console.WriteLine($"Cálculo de saldos:");
-            Console.WriteLine($"  Saldo Inicial: {saldoInicial}");
-            Console.WriteLine($"  Saldo Final: {saldoFinal}");
+            Console.WriteLine($"  Saldo Inicial: {saldoInicial:C}");
+            Console.WriteLine($"  Saldo Final: {saldoFinal:C}");
             Console.WriteLine($"  Movimientos en período: {movimientos.Count}");
+            Console.WriteLine($"  Variación Neta: {(saldoFinal - saldoInicial):C}");
 
             var reporte = new CajaReporteViewModel
             {
@@ -222,7 +240,7 @@ namespace ControlInventario.Controllers
                 SaldoFinal = saldoFinal
             };
 
-            Console.WriteLine($"Reporte generado: {movimientos.Count} movimientos, Saldo Inicial: {saldoInicial}, Saldo Final: {reporte.SaldoFinal}");
+            Console.WriteLine($"Reporte generado: {movimientos.Count} movimientos, Saldo Inicial: {saldoInicial:C}, Saldo Final: {reporte.SaldoFinal:C}");
 
             // Resumen por tipo de movimiento
             reporte.ResumenPorTipo = movimientos

@@ -55,10 +55,48 @@ namespace ControlInventario.Controllers
                     .SumAsync(p => p.StockActual * p.PrecioIngreso);
 
                 // Ventas hoy
-                adminModel.VentasHoy = await _context.Venta.CountAsync(v => v.Fecha.HasValue && v.Fecha.Value.Date == hoy && v.Anulada == false);
-                adminModel.VentasHoyMonto = await _context.Venta
-                    .Where(v => v.Fecha.HasValue && v.Fecha.Value.Date == hoy && v.Anulada == false)
-                    .SumAsync(v => v.Total);
+                Console.WriteLine($"=== DEPURACIÓN VENTAS HOY ===");
+                Console.WriteLine($"Fecha del servidor (hoy): {hoy:yyyy-MM-dd}");
+                
+                // Verificar fechas de ventas recientes
+                var ventasRecientes = await _context.Venta
+                    .Where(v => v.Fecha.HasValue && !v.Anulada)
+                    .OrderByDescending(v => v.Fecha)
+                    .Take(5)
+                    .ToListAsync();
+                
+                Console.WriteLine($"Ventas recientes (últimas 5):");
+                foreach (var venta in ventasRecientes)
+                {
+                    Console.WriteLine($"  Venta #{venta.NumeroVenta}: {venta.Fecha:yyyy-MM-dd HH:mm:ss} - {venta.Total:C}");
+                }
+                
+                // Corregir el filtro de fecha para que funcione correctamente
+                var hoyInicio = hoy.Date;
+                var hoyFin = hoy.Date.AddDays(1).AddTicks(-1);
+                
+                Console.WriteLine($"Filtrando ventas entre: {hoyInicio:yyyy-MM-dd HH:mm:ss} y {hoyFin:yyyy-MM-dd HH:mm:ss}");
+                
+                var ventasHoyQuery = _context.Venta
+                    .Where(v => v.Fecha.HasValue && 
+                               v.Fecha.Value >= hoyInicio && 
+                               v.Fecha.Value <= hoyFin && 
+                               v.Anulada == false);
+                
+                var ventasHoyList = await ventasHoyQuery.ToListAsync();
+                Console.WriteLine($"Ventas encontradas para hoy: {ventasHoyList.Count}");
+                
+                foreach (var venta in ventasHoyList.Take(3))
+                {
+                    Console.WriteLine($"  Venta #{venta.NumeroVenta}: {venta.Fecha:yyyy-MM-dd HH:mm:ss} - {venta.Total:C} - Anulada: {venta.Anulada}");
+                }
+                
+                adminModel.VentasHoy = await ventasHoyQuery.CountAsync();
+                adminModel.VentasHoyMonto = await ventasHoyQuery.SumAsync(v => v.Total);
+                
+                Console.WriteLine($"Ventas hoy contadas: {adminModel.VentasHoy}");
+                Console.WriteLine($"Monto total hoy: {adminModel.VentasHoyMonto:C}");
+                Console.WriteLine($"=== FIN DEPURACIÓN VENTAS HOY ===");
 
                 // Ventas semana
                 adminModel.VentasSemana = await _context.Venta.CountAsync(v => v.Fecha.HasValue && v.Fecha.Value >= primerDiaSemana && v.Anulada == false);

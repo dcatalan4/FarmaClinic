@@ -267,7 +267,6 @@
 @section Scripts {
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" />
     
     <script>
         // Función para cargar scripts dinámicamente
@@ -294,11 +293,7 @@
                 console.log('Cargando DataTables...');
                 loadScript('https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js', function() {
                     loadScript('https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js', function() {
-                        loadScript('https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js', function() {
-                            loadScript('https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js', function() {
-                                initializeDataTables();
-                            });
-                        });
+                        initializeDataTables();
                     });
                 });
                 return;
@@ -310,7 +305,7 @@
         function initializeDataTables() {
             console.log('Inicializando DataTables...');
             
-            // Inicializar DataTable
+            // Inicializar DataTable sin botones de exportación
             $('#movimientosTable').DataTable({
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
@@ -320,24 +315,7 @@
                 "responsive": true,
                 "dom": "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
                        "<'row'<'col-sm-12'tr>>" +
-                       "<'row'<'col-sm-12'i>>",
-                "buttons": [
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-success btn-sm'
-                    },
-                    {
-                        extend: 'pdf',
-                        text: '<i class="fas fa-file-pdf"></i> PDF',
-                        className: 'btn btn-danger btn-sm'
-                    },
-                    {
-                        extend: 'print',
-                        text: '<i class="fas fa-print"></i> Imprimir',
-                        className: 'btn btn-primary btn-sm'
-                    }
-                ]
+                       "<'row'<'col-sm-12'i>>"
             });
             
             console.log('DataTable inicializado correctamente');

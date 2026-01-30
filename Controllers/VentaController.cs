@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Npgsql;
 using ControlInventario.Models;
+using ControlInventario.Helpers;
+using ControlInventario.Services;
 
 namespace ControlInventario.Controllers
 {
@@ -14,10 +17,12 @@ namespace ControlInventario.Controllers
     public class VentaController : Controller
     {
         private readonly ControlFarmaclinicContext _context;
+        private readonly IMovimientoCajaService _movimientoCajaService;
 
-        public VentaController(ControlFarmaclinicContext context)
+        public VentaController(ControlFarmaclinicContext context, IMovimientoCajaService movimientoCajaService)
         {
             _context = context;
+            _movimientoCajaService = movimientoCajaService;
         }
 
         // GET: Venta
@@ -91,9 +96,8 @@ namespace ControlInventario.Controllers
         // POST: Venta/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            [Bind("IdVenta,Fecha,Subtotal,Total,Anulada")] Ventum ventum,
-            List<int> IdProducto, List<int> Cantidad, List<decimal> PrecioUnitario)
+        public async Task<IActionResult> Create([Bind("IdVenta,NumeroVenta,Fecha,IdUsuario,Subtotal,Total,Anulada")] Ventum ventum, 
+            List<int> IdProducto, List<int> Cantidad, List<decimal> PrecioUnitario, string clientDateTime = null)
         {
             // Obtener el ID del usuario logueado
             var userIdClaim = User.FindFirst("IdUsuario")?.Value;
@@ -132,11 +136,20 @@ namespace ControlInventario.Controllers
             if (ModelState.IsValid)
             {
                 Console.WriteLine("ModelState es válido, procesando venta...");
-                // Generar número de venta único
-                var numeroVenta = int.Parse(DateTime.Now.ToString("yyyyMMddHHmmss"));
+                Console.WriteLine($"clientDateTime recibido: {clientDateTime}");
+                
+                // Generar número de venta único usando fecha del cliente
+                var clientDate = !string.IsNullOrEmpty(clientDateTime) ? DateTime.Parse(clientDateTime) : (DateTime?)null;
+                Console.WriteLine($"clientDate parseado: {clientDate}");
+                
+                var numeroVenta = DateTimeHelper.GenerateVentaNumber(clientDate);
                 ventum.NumeroVenta = numeroVenta;
 
-                ventum.Fecha = DateTime.Now;
+                // Usar fecha del cliente o fallback a servidor
+                ventum.Fecha = DateTimeHelper.GetClientDateTime(clientDate);
+                Console.WriteLine($"Fecha asignada a venta: {ventum.Fecha:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"Fecha servidor: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                
                 ventum.Anulada = false;
 
                 // Calcular subtotal y total
@@ -173,7 +186,7 @@ namespace ControlInventario.Controllers
                                 IdProducto = IdProducto[i],
                                 TipoMovimiento = "S", // S para Salida (venta de producto)
                                 Cantidad = Cantidad[i],
-                                Fecha = DateTime.Now,
+                                Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                                 Referencia = $"Venta #{ventum.NumeroVenta}",
                                 IdUsuario = ventum.IdUsuario
                             };
@@ -212,29 +225,23 @@ namespace ControlInventario.Controllers
 
                 if (cajaPrincipal != null)
                 {
-                    // Actualizar saldo de la caja
-                    cajaPrincipal.SaldoActual += ventum.Total;
+                    // Crear movimiento de caja usando el servicio
+                    await _movimientoCajaService.CrearMovimientoAsync(
+                        cajaPrincipal.IdCaja,
+                        "I", // I = Ingreso
+                        ventum.Total,
+                        $"Venta #{ventum.NumeroVenta}",
+                        ventum.IdUsuario,
+                        ventum.IdVenta
+                    );
                     
-                    // Crear movimiento de caja
-                    var movimientoCaja = new MovimientoCaja
-                    {
-                        IdCaja = cajaPrincipal.IdCaja,
-                        TipoMovimiento = "I", // I = Ingreso
-                        Monto = ventum.Total,
-                        Fecha = DateTime.Now,
-                        Concepto = $"Venta #{ventum.NumeroVenta}",
-                        IdReferencia = ventum.IdVenta,
-                        IdUsuario = ventum.IdUsuario
-                    };
-                    
-                    _context.Add(movimientoCaja);
-                    await _context.SaveChangesAsync();
-                    
-                    Console.WriteLine($"Caja principal actualizada: +Q {ventum.Total:N2}");
+                    Console.WriteLine($"Movimiento de caja creado: +Q {ventum.Total:N2}");
                 }
                 else
                 {
-                    Console.WriteLine("ADVERTENCIA: No se encontró caja principal activa");
+                    Console.WriteLine("ADVERTENCIA: No se encontró caja principal activa. Movimiento de caja no creado.");
+                    // Opcional: Agregar un mensaje de advertencia para el usuario
+                    TempData["Warning"] = "La venta se registró pero no se pudo crear el movimiento de caja porque no hay una caja activa.";
                 }
 
                 Console.WriteLine("Venta creada con éxito");
@@ -374,19 +381,15 @@ namespace ControlInventario.Controllers
                     // Actualizar saldo de la caja (restar el monto de la venta anulada)
                     cajaPrincipal.SaldoActual -= ventum.Total;
                     
-                    // Crear movimiento de caja de salida
-                    var movimientoCaja = new MovimientoCaja
-                    {
-                        IdCaja = cajaPrincipal.IdCaja,
-                        TipoMovimiento = "E", // E = Egreso
-                        Monto = ventum.Total,
-                        Fecha = DateTime.Now,
-                        Concepto = $"Anulación Venta #{ventum.NumeroVenta}",
-                        IdReferencia = ventum.IdVenta,
-                        IdUsuario = ventum.IdUsuario
-                    };
-                    
-                    _context.Add(movimientoCaja);
+                    // Crear movimiento de caja de salida usando el servicio
+                    await _movimientoCajaService.CrearMovimientoAsync(
+                        cajaPrincipal.IdCaja,
+                        "E", // E = Egreso
+                        ventum.Total,
+                        $"Anulación venta #{ventum.NumeroVenta}",
+                        ventum.IdUsuario,
+                        ventum.IdVenta
+                    );
                     Console.WriteLine($"Caja principal actualizada: -Q {ventum.Total:N2} (anulación venta)");
                 }
                 else
@@ -412,9 +415,9 @@ namespace ControlInventario.Controllers
                 if (!string.IsNullOrWhiteSpace(termino))
                 {
                     query = query.Where(p => 
-                        p.Codigo.Contains(termino) ||
-                        p.Nombre.Contains(termino) ||
-                        (p.Descripcion != null && p.Descripcion.Contains(termino))
+                        EF.Functions.Like(p.Codigo.ToLower(), $"%{termino.ToLower()}%") ||
+                        EF.Functions.Like(p.Nombre.ToLower(), $"%{termino.ToLower()}%") ||
+                        (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{termino.ToLower()}%"))
                     );
                 }
 
@@ -475,8 +478,8 @@ namespace ControlInventario.Controllers
 
             var productos = await _context.Productos
                 .Where(p => p.Activo == true && p.StockActual > 0)
-                .Where(p => p.Nombre.Contains(term) || 
-                           (p.Descripcion != null && p.Descripcion.Contains(term)))
+                .Where(p => EF.Functions.Like(p.Nombre.ToLower(), $"%{term.ToLower()}%") || 
+                           (p.Descripcion != null && EF.Functions.Like(p.Descripcion.ToLower(), $"%{term.ToLower()}%")))
                 .Select(p => new {
                     id = p.IdProducto,
                     nombre = p.Nombre,

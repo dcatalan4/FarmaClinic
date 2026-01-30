@@ -4,12 +4,26 @@
     ViewData["Title"] = "Nueva Venta";
 }
 
+<!-- Incluir DateTime Helper -->
+<script src="~/js/datetime-helper.js"></script>
+
 <div class="container-fluid">
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle"></i>
             <strong>¡Éxito!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>¡Advertencia!</strong> @TempData["Warning"]
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -45,8 +59,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label font-weight-bold">Fecha</label>
-                                    <input type="text" class="form-control" value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")" readonly />
+                                    <label class="control-label font-weight-bold">Fecha y Hora</label>
+                                    <input type="text" class="form-control" id="fechaCliente" readonly />
+                                    <small class="text-muted">Hora local de tu equipo</small>
                                 </div>
                             </div>
                         </div>
@@ -331,6 +346,9 @@
         document.getElementById('ventaForm').addEventListener('submit', function(e) {
             console.log('=== FORM SUBMIT DEBUG ===');
             
+            // Agregar fecha y hora del cliente al formulario
+            DateTimeClientHelper.addClientDateTimeToForm('ventaForm');
+            
             const productosIds = document.querySelectorAll('.producto-id');
             let productosValidos = 0;
             let productosVacios = 0;
@@ -386,6 +404,12 @@
         // Inicializar el primer buscador cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
             inicializarBuscador(0);
+            
+            // Inicializar fecha y hora del cliente
+            if (typeof DateTimeClientHelper !== 'undefined') {
+                document.getElementById('fechaCliente').value = DateTimeClientHelper.formatDateTime();
+                console.log('Fecha del cliente inicializada:', DateTimeClientHelper.getClientDateTime());
+            }
             
             // Auto-cerrar alerta de éxito después de 5 segundos
             const successAlert = document.querySelector('.alert-success');
