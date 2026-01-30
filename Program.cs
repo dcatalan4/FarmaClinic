@@ -8,12 +8,21 @@ using Microsoft.AspNetCore.Authorization;
 using Npgsql;
 using System.Globalization;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = Directory.GetCurrentDirectory(),
+    WebRootPath = "wwwroot"
+});
 
 // Configurar para evitar problemas de inotify en producción
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false);
-builder.Configuration.AddEnvironmentVariables();
+builder.Host.ConfigureAppConfiguration((context, config) =>
+{
+    config.Sources.Clear();
+    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+    config.AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: false);
+    config.AddEnvironmentVariables();
+});
 
 // Configurar cultura para Guatemala (Quetzales)
 var cultureInfo = new CultureInfo("es-GT");
