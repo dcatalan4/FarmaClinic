@@ -135,21 +135,13 @@ namespace ControlInventario.Controllers
 
             if (ModelState.IsValid)
             {
-                Console.WriteLine("ModelState es válido, procesando venta...");
-                Console.WriteLine($"clientDateTime recibido: {clientDateTime}");
-                
                 // Generar número de venta único usando fecha del cliente
                 var clientDate = !string.IsNullOrEmpty(clientDateTime) ? DateTime.Parse(clientDateTime) : (DateTime?)null;
-                Console.WriteLine($"clientDate parseado: {clientDate}");
-                
                 var numeroVenta = DateTimeHelper.GenerateVentaNumber(clientDate);
                 ventum.NumeroVenta = numeroVenta;
 
                 // Usar fecha del cliente o fallback a servidor
                 ventum.Fecha = DateTimeHelper.GetClientDateTime(clientDate);
-                Console.WriteLine($"Fecha asignada a venta: {ventum.Fecha:yyyy-MM-dd HH:mm:ss}");
-                Console.WriteLine($"Fecha servidor: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                
                 ventum.Anulada = false;
 
                 // Calcular subtotal y total
