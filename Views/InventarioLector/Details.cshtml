@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Models.Producto
 @{
     ViewData["Title"] = "Detalles del Producto";
@@ -26,10 +27,10 @@
                                 <dd class="col-sm-9">@Model.Descripcion</dd>
 
                                 <dt class="col-sm-3">Precio Ingreso:</dt>
-                                <dd class="col-sm-9">@Model.PrecioIngreso.ToString("C")</dd>
+                                <dd class="col-sm-9">@CurrencyHelper.ToQuetzales(Model.PrecioIngreso)</dd>
 
                                 <dt class="col-sm-3">Precio Venta:</dt>
-                                <dd class="col-sm-9">@Model.PrecioVenta.ToString("C")</dd>
+                                <dd class="col-sm-9">@CurrencyHelper.ToQuetzales(Model.PrecioVenta)</dd>
 
                                 <dt class="col-sm-3">Stock Actual:</dt>
                                 <dd class="col-sm-9">
@@ -61,10 +62,10 @@
                                 </div>
                                 <div class="card-body">
                                     <p><strong>Valor Total en Stock:</strong></p>
-                                    <h3 class="text-primary">@(Model.StockActual * Model.PrecioIngreso).ToString("C")</h3>
+                                    <h3 class="text-primary">@CurrencyHelper.ToQuetzales(Model.StockActual * Model.PrecioIngreso)</h3>
                                     <hr>
                                     <p><strong>Potencial de Venta:</strong></p>
-                                    <h4 class="text-success">@(Model.StockActual * Model.PrecioVenta).ToString("C")</h4>
+                                    <h4 class="text-success">@CurrencyHelper.ToQuetzales(Model.StockActual * Model.PrecioVenta)</h4>
                                 </div>
                             </div>
                         </div>

@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model IEnumerable<ControlInventario.Models.Producto>
 @{
     ViewData["Title"] = "Inventario - Vista Lector";
@@ -47,7 +48,7 @@
                                         <td>@item.Codigo</td>
                                         <td>@item.Nombre</td>
                                         <td>@item.Descripcion</td>
-                                        <td>@item.PrecioVenta.ToString("C")</td>
+                                        <td>@CurrencyHelper.ToQuetzales(item.PrecioVenta)</td>
                                         <td>
                                             <span class="badge @(item.StockActual > 10 ? "bg-success" : item.StockActual > 0 ? "bg-warning" : "bg-danger")">
                                                 @item.StockActual

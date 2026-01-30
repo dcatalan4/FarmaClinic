@@ -252,3 +252,4 @@ C:\Users\VICTUS\Desktop\FarmaClinic\ControlInventario\ControlInventario\bin\Debu
 C:\Users\VICTUS\Desktop\FarmaClinic\ControlInventario\ControlInventario\bin\Debug\net8.0\System.Text.Encodings.Web.dll
 C:\Users\VICTUS\Desktop\FarmaClinic\ControlInventario\ControlInventario\bin\Debug\net8.0\System.Text.Json.dll
 C:\Users\VICTUS\Desktop\FarmaClinic\ControlInventario\ControlInventario\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
+C:\Users\VICTUS\Desktop\FarmaClinic\ControlInventario\ControlInventario\obj\Debug\net8.0\ControlInventario.sourcelink.json

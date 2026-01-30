@@ -6,8 +6,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Npgsql;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar cultura para Guatemala (Quetzales)
+var cultureInfo = new CultureInfo("es-GT");
+cultureInfo.NumberFormat.CurrencySymbol = "Q";
+cultureInfo.NumberFormat.CurrencyDecimalDigits = 2;
+cultureInfo.NumberFormat.CurrencyDecimalSeparator = ".";
+cultureInfo.NumberFormat.CurrencyGroupSeparator = ",";
+
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // Agregar servicios al contenedor
 builder.Services.AddControllersWithViews();
