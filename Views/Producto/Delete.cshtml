@@ -1,0 +1,102 @@
+@model ControlInventario.Models.Producto
+@{
+    ViewData["Title"] = "Desactivar Producto";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Desactivar Producto</h1>
+        <a href="@Url.Action("Index", "Producto")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a la lista
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow border-left-danger">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Desactivación
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> ¡Atención!</h5>
+                        <p>Estás a punto de desactivar este producto. Ten en cuenta que:</p>
+                        <ul>
+                            <li>El producto <strong>no aparecerá</strong> en el buscador de ventas</li>
+                            <li>No se podrá <strong>vender</strong> mientras esté desactivado</li>
+                            <li>El stock y la información se <strong>conservarán</strong></li>
+                            <li>Puedes <strong>reactivarlo</strong> en cualquier momento</li>
+                        </ul>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Código:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            @Model.Codigo
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Nombre:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            @Model.Nombre
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Stock Actual:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="badge @(Model.StockActual > 10 ? "badge-success" : Model.StockActual > 0 ? "badge-warning" : "badge-danger")">
+                                @Model.StockActual unidades
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Precio de Venta:</strong>
+                        </div>
+                        <div class="col-md-6">
+                            Q @Model.PrecioVenta.ToString("N2")
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Descripcion))
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Descripción:</strong>
+                            </div>
+                            <div class="col-md-6">
+                                @Model.Descripcion
+                            </div>
+                        </div>
+                    }
+
+                    <hr>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="IdProducto" />
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmar Desactivación
+                            </button>
+                            <a href="@Url.Action("Details", "Producto", new { id = Model.IdProducto })" class="btn btn-secondary ml-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

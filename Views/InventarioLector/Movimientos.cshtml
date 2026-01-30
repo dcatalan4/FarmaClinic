@@ -1,0 +1,83 @@
+@model IEnumerable<ControlInventario.Models.MovimientoInventario>
+@{
+    ViewData["Title"] = "Movimientos del Producto";
+    var producto = ViewBag.Producto as ControlInventario.Models.Producto;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-history"></i> Movimientos de @producto?.Nombre
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Producto: <strong>@producto?.Nombre</strong></h6>
+                            <p>Código: @producto?.Codigo | Stock Actual: <span class="badge @(producto?.StockActual > 10 ? "bg-success" : producto?.StockActual > 0 ? "bg-warning" : "bg-danger")">@producto?.StockActual</span></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <a href="@Url.Action("Details", new { id = producto?.IdProducto })" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver a Detalles
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Referencia</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (item.TipoMovimiento == "E")
+                                            {
+                                                <span class="badge bg-success">Entrada</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Salida</span>
+                                            }
+                                        </td>
+                                        <td>@item.Cantidad</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.Referencia))
+                                            {
+                                                <span>@item.Referencia</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>@item.IdUsuarioNavigation?.Nombre</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i> No hay movimientos registrados para este producto.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,193 @@
+@model ControlInventario.Models.Producto
+@{
+    ViewData["Title"] = "Detalles del Producto";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Detalles del Producto</h1>
+        <div>
+            <a href="@Url.Action("Edit", "Producto", new { id = Model.IdProducto })" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="@Url.Action("Movimientos", "Producto", new { id = Model.IdProducto })" class="btn btn-secondary">
+                <i class="fas fa-history"></i> Ver Movimientos
+            </a>
+            <a href="@Url.Action("Index", "Producto")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Product Information -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información General</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Código</label>
+                                <p class="form-control-plaintext">@Model.Codigo</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Nombre</label>
+                                <p class="form-control-plaintext">@Model.Nombre</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Descripción</label>
+                        <p class="form-control-plaintext">
+                            @(string.IsNullOrEmpty(Model.Descripcion) ? "Sin descripción" : Model.Descripcion)
+                        </p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Precio de Compra</label>
+                                <p class="form-control-plaintext">Q @Model.PrecioIngreso.ToString("N2")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Precio de Venta</label>
+                                <p class="form-control-plaintext">Q @Model.PrecioVenta.ToString("N2")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Margen de Ganancia</label>
+                                <p class="form-control-plaintext">
+                                    @{
+                                        var margen = Model.PrecioVenta > 0 ? ((Model.PrecioVenta - Model.PrecioIngreso) / Model.PrecioVenta * 100) : 0;
+                                    }
+                                    @margen.ToString("N1")%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Stock Actual</label>
+                                <p class="form-control-plaintext">
+                                    <span class="badge @(Model.StockActual > 10 ? "badge-success" : Model.StockActual > 0 ? "badge-warning" : "badge-danger")">
+                                        @Model.StockActual unidades
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Estado</label>
+                                <p class="form-control-plaintext">
+                                    @if (Model.Activo == true)
+                                    {
+                                        <span class="badge badge-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Inactivo</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha de Creación</label>
+                                <p class="form-control-plaintext">
+                                    @(Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm") ?? "No registrada")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Status Card -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estado del Stock</h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        @{
+                            var stockIcon = Model.StockActual > 10 ? "fa-check-circle text-success" : 
+                                           Model.StockActual > 0 ? "fa-exclamation-triangle text-warning" : 
+                                           "fa-times-circle text-danger";
+                        }
+                        <i class="fas @stockIcon fa-4x"></i>
+                    </div>
+                    <h5 class="card-title">@Model.StockActual Unidades</h5>
+                    <p class="card-text">
+                        @{
+                            var stockMessage = Model.StockActual > 10 ? "Stock adecuado" :
+                                             Model.StockActual > 0 ? "Stock bajo" :
+                                             "Sin stock";
+                            var stockColor = Model.StockActual > 10 ? "text-success" :
+                                            Model.StockActual > 0 ? "text-warning" :
+                                            "text-danger";
+                        }
+                        <span class="@stockColor font-weight-bold">@stockMessage</span>
+                    </p>
+                    
+                    @if (Model.StockActual <= 10 && Model.StockActual > 0)
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>¡Atención!</strong> El stock está bajo. Considera reponer pronto.
+                        </div>
+                    }
+                    else if (Model.StockActual == 0)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            <i class="fas fa-times-circle"></i>
+                            <strong>¡Sin stock!</strong> Este producto no está disponible para venta.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Edit", "Producto", new { id = Model.IdProducto })" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar Producto
+                        </a>
+                        <a href="@Url.Action("Movimientos", "Producto", new { id = Model.IdProducto })" class="btn btn-secondary">
+                            <i class="fas fa-history"></i> Ver Historial
+                        </a>
+                        @if (Model.Activo == true)
+                        {
+                            <a href="@Url.Action("Delete", "Producto", new { id = Model.IdProducto })" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Desactivar
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Activar", "Producto", new { id = Model.IdProducto })" class="btn btn-success">
+                                <i class="fas fa-check"></i> Activar
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

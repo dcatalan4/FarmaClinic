@@ -1,0 +1,161 @@
+@model ControlInventario.Models.MovimientoCaja
+@{
+    ViewData["Title"] = "Detalles del Movimiento";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-receipt"></i> Detalles del Movimiento
+        </h1>
+        <div>
+            <a href="@Url.Action("Movimientos", "Caja")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Movimientos
+            </a>
+        </div>
+    </div>
+
+    <!-- Movement Details Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        Información del Movimiento #@Model.IdMovimientoCaja
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">ID del Movimiento:</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge bg-secondary fs-6">@Model.IdMovimientoCaja</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Fecha y Hora:</label>
+                                <div class="form-control-plaintext">
+                                    <i class="fas fa-calendar"></i> @Model.Fecha?.ToString("dd/MM/yyyy HH:mm:ss")
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tipo de Movimiento:</label>
+                                <div class="form-control-plaintext">
+                                    @if (Model.TipoMovimiento?.ToUpper() == "I")
+                                    {
+                                        <span class="badge bg-success fs-6">
+                                            <i class="fas fa-arrow-down"></i> INGRESO
+                                        </span>
+                                    }
+                                    else if (Model.TipoMovimiento?.ToUpper() == "E")
+                                    {
+                                        <span class="badge bg-danger fs-6">
+                                            <i class="fas fa-arrow-up"></i> EGRESO
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary fs-6">
+                                            <i class="fas fa-exchange-alt"></i> @Model.TipoMovimiento
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Monto:</label>
+                                <div class="form-control-plaintext fs-4">
+                                    @if (Model.TipoMovimiento?.ToUpper() == "I")
+                                    {
+                                        <span class="text-success">+Q @Model.Monto.ToString("N2")</span>
+                                    }
+                                    else if (Model.TipoMovimiento?.ToUpper() == "E")
+                                    {
+                                        <span class="text-danger">-Q @Model.Monto.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-primary">Q @Model.Monto.ToString("N2")</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Caja:</label>
+                                <div class="form-control-plaintext">
+                                    <i class="fas fa-cash-register"></i> @Model.IdCajaNavigation?.Nombre
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Concepto:</label>
+                                <div class="form-control-plaintext">
+                                    <i class="fas fa-tag"></i> @Model.Concepto
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Usuario que registró:</label>
+                                <div class="form-control-plaintext">
+                                    <i class="fas fa-user"></i> @Model.IdUsuarioNavigation?.Nombre
+                                </div>
+                            </div>
+
+                            @if (Model.IdReferencia.HasValue)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Referencia:</label>
+                                    <div class="form-control-plaintext">
+                                        <i class="fas fa-link"></i> #@Model.IdReferencia
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Resumen del Movimiento</h6>
+                                <p class="mb-0">
+                                    @if (Model.TipoMovimiento?.ToUpper() == "I")
+                                    {
+                                        <text>Se <strong>agregaron</strong> Q @Model.Monto.ToString("N2") a la caja "@Model.IdCajaNavigation?.Nombre" por concepto de "@Model.Concepto".</text>
+                                    }
+                                    else if (Model.TipoMovimiento?.ToUpper() == "E")
+                                    {
+                                        <text>Se <strong>retiraron</strong> Q @Model.Monto.ToString("N2") de la caja "@Model.IdCajaNavigation?.Nombre" por concepto de "@Model.Concepto".</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Movimiento de Q @Model.Monto.ToString("N2") en la caja "@Model.IdCajaNavigation?.Nombre" por concepto de "@Model.Concepto".</text>
+                                    }
+                                </p>    
+                                <p class="mb-0">
+                                    El movimiento fue registrado por <strong>@Model.IdUsuarioNavigation?.Nombre</strong> el día @Model.Fecha?.ToString("dd/MM/yyyy") a las @Model.Fecha?.ToString("HH:mm").
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="@Url.Action("Movimientos", "Caja")" class="btn btn-primary">
+                            <i class="fas fa-list"></i> Ver Todos los Movimientos
+                        </a>
+                        <a href="@Url.Action("Index", "Caja")" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> Estado de Caja
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

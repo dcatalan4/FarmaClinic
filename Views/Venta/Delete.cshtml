@@ -1,0 +1,102 @@
+@model ControlInventario.Models.Ventum
+@{
+    ViewData["Title"] = "Anular Venta";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Anular Venta</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a la lista
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Confirmar Anulación</h6>
+                </div>
+                <div class="card-body">
+                    <h3 class="text-danger">¿Está seguro que desea anular esta venta?</h3>
+                    <p class="text-muted">Esta acción devolverá los productos al inventario y marcará la venta como anulada.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Número de Venta:</label>
+                                <p>@Model.NumeroVenta</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha:</label>
+                                <p>@Model.Fecha?.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Usuario:</label>
+                                <p>@Model.IdUsuarioNavigation?.Nombre</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Total:</label>
+                                <p class="h4 text-danger font-weight-bold">Q @Model.Total.ToString("N2")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <form asp-action="Delete">
+                        <input type="hidden" asp-for="IdVenta" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Confirmar Anulación
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">Información Importante</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Advertencia</h6>
+                        <p class="mb-0">Al anular esta venta:</p>
+                        <ul class="mb-0">
+                            <li>Se devolverán todos los productos al inventario</li>
+                            <li>La venta quedará marcada como anulada</li>
+                            <li>Esta acción no se puede deshacer</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: 1px solid #e9ecef;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .form-group label {
+        color: #495057;
+        margin-bottom: 0.25rem;
+    }
+    .form-group p {
+        margin-bottom: 0.5rem;
+        color: #212529;
+    }
+</style>

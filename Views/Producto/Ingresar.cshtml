@@ -1,0 +1,552 @@
+@{
+    ViewData["Title"] = "Ingresar Productos";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Ingresar Productos al Inventario</h1>
+        <div>
+            <a href="@Url.Action("Index", "Producto")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Productos
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Search Section -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Buscar Producto</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Buscar por código, nombre o descripción</label>
+                        <div class="input-group">
+                            <input type="text" id="busquedaProducto" class="form-control" 
+                                   placeholder="Escriba para buscar..." autocomplete="off">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button" onclick="buscarProductos()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div id="resultadosBusqueda" style="max-height: 300px; overflow-y: auto;">
+                        <!-- Los resultados se cargarán aquí -->
+                    </div>
+
+                    <!-- Create New Product -->
+                    <div class="mt-3">
+                        <button class="btn btn-success btn-block" onclick="mostrarFormularioNuevo()">
+                            <i class="fas fa-plus"></i> Crear Nuevo Producto
+                        </button>
+                    </div>
+
+                    <!-- New Product Form (Hidden by default) -->
+                    <div id="formularioNuevo" style="display: none;" class="mt-3">
+                        <h6 class="font-weight-bold text-success">Nuevo Producto</h6>
+                        <div class="form-group">
+                            <label>Código</label>
+                            <input type="text" id="nuevoCodigo" class="form-control" placeholder="Ej: PROD001">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" id="nuevoNombre" class="form-control" placeholder="Nombre del producto">
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <textarea id="nuevaDescripcion" class="form-control" rows="2" placeholder="Descripción opcional"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Compra</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Q</span>
+                                </div>
+                                <input type="number" id="nuevoPrecioCompra" class="form-control" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Venta</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Q</span>
+                                </div>
+                                <input type="number" id="nuevoPrecioVenta" class="form-control" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad a Ingresar</label>
+                            <input type="number" id="nuevaCantidad" class="form-control" min="1" value="1">
+                        </div>
+                        <div class="btn-group w-100">
+                            <button class="btn btn-success" onclick="agregarNuevoProducto()">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                            <button class="btn btn-secondary" onclick="ocultarFormularioNuevo()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products List -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Productos a Ingresar</h6>
+                    <span class="badge badge-primary" id="contadorProductos">0 productos</span>
+                </div>
+                <div class="card-body">
+                    <div id="listaProductos">
+                        <!-- Los productos se agregarán aquí -->
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-box fa-3x mb-3"></i>
+                            <h5>No hay productos agregados</h5>
+                            <p>Busca productos o crea nuevos para agregarlos a la lista</p>
+                        </div>
+                    </div>
+
+                    <!-- Summary Section -->
+                    <div id="resumen" style="display: none;" class="mt-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="font-weight-bold">Resumen del Ingreso</h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Total Productos:</strong> <span id="totalProductos">0</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Total Unidades:</strong> <span id="totalUnidades">0</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Valor Total:</strong> Q <span id="valorTotal">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <button class="btn btn-success btn-lg" onclick="procesarIngreso()">
+                                <i class="fas fa-check"></i> Procesar Ingreso
+                            </button>
+                            <button class="btn btn-secondary btn-lg ml-2" onclick="limpiarLista()">
+                                <i class="fas fa-trash"></i> Limpiar Lista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Procesando...</span>
+                </div>
+                <p class="mt-2">Procesando ingreso...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let productosParaIngresar = [];
+        let productoIndex = 0;
+        let loadingModal = null; // Referencia global al modal
+
+        // Función para inicializar el modal
+        function inicializarModal() {
+            const modalElement = document.getElementById('loadingModal');
+            if (modalElement) {
+                loadingModal = new bootstrap.Modal(modalElement);
+            }
+        }
+
+        // Función para cerrar modal completamente
+        function cerrarModal() {
+            console.log('Cerrando modal...');
+            
+            if (loadingModal) {
+                try {
+                    // Ocultar el modal
+                    loadingModal.hide();
+                    
+                    // Esperar a que se complete la animación y limpiar
+                    setTimeout(() => {
+                        // Eliminar todos los backdrops
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(backdrop => backdrop.remove());
+                        
+                        // Restaurar el body
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                        
+                        // Eliminar cualquier instancia de modal
+                        const modals = document.querySelectorAll('.modal.show');
+                        modals.forEach(modal => modal.classList.remove('show'));
+                        
+                        console.log('Modal cerrado completamente');
+                    }, 300);
+                } catch (error) {
+                    console.error('Error al cerrar modal:', error);
+                    // Forzar limpieza manual
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    document.querySelectorAll('.modal.show').forEach(el => el.classList.remove('show'));
+                }
+            } else {
+                console.log('Modal no inicializado, intentando limpieza manual');
+                // Limpieza manual si el modal no está inicializado
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.querySelectorAll('.modal.show').forEach(el => el.classList.remove('show'));
+            }
+        }
+
+        // Buscar productos (con autocompletado)
+        let searchTimeout;
+        
+        function buscarProductos() {
+            const termino = document.getElementById('busquedaProducto').value.trim();
+            
+            if (termino.length < 2) {
+                document.getElementById('resultadosBusqueda').innerHTML = 
+                    '<div class="alert alert-info">Escriba al menos 2 caracteres para buscar</div>';
+                return;
+            }
+
+            fetch('@Url.Action("BuscarProducto", "Producto")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'termino=' + encodeURIComponent(termino)
+            })
+            .then(response => response.json())
+            .then(data => {
+                mostrarResultados(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('resultadosBusqueda').innerHTML = 
+                    '<div class="alert alert-danger">Error al buscar productos</div>';
+            });
+        }
+
+        // Autocompletado mientras se escribe
+        function setupAutocomplete() {
+            const input = document.getElementById('busquedaProducto');
+            
+            input.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const termino = this.value.trim();
+                
+                if (termino.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        buscarProductos();
+                    }, 300); // Esperar 300ms después de dejar de escribir
+                } else if (termino.length === 0) {
+                    document.getElementById('resultadosBusqueda').innerHTML = '';
+                }
+            });
+        }
+
+        // Mostrar resultados de búsqueda
+        function mostrarResultados(productos) {
+            const container = document.getElementById('resultadosBusqueda');
+            
+            if (productos.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">No se encontraron productos</div>';
+                return;
+            }
+
+            let html = '<div class="list-group">';
+            productos.forEach(producto => {
+                html += `
+                    <div class="list-group-item list-group-item-action" onclick="agregarProductoExistente(${producto.idProducto}, '${producto.codigo}', '${producto.nombre}', '${producto.descripcion || ''}', ${producto.precioIngreso}, ${producto.precioVenta}, ${producto.stockActual})">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${producto.nombre}</h6>
+                            <small class="text-muted">${producto.codigo}</small>
+                        </div>
+                        <p class="mb-1">${producto.descripcion || 'Sin descripción'}</p>
+                        <small>Stock actual: ${producto.stockActual} | Precio: Q ${producto.precioVenta.toFixed(2)}</small>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Agregar producto existente
+        function agregarProductoExistente(idProducto, codigo, nombre, descripcion, precioIngreso, precioVenta, stockActual) {
+            agregarProductoALista({
+                idProducto: idProducto,
+                codigo: codigo,
+                nombre: nombre,
+                descripcion: descripcion,
+                precioIngreso: precioIngreso,
+                precioVenta: precioVenta,
+                cantidad: 1,
+                stockActual: stockActual
+            });
+        }
+
+        // Mostrar formulario de nuevo producto
+        function mostrarFormularioNuevo() {
+            document.getElementById('formularioNuevo').style.display = 'block';
+            document.getElementById('resultadosBusqueda').innerHTML = '';
+            document.getElementById('busquedaProducto').value = '';
+        }
+
+        // Ocultar formulario de nuevo producto
+        function ocultarFormularioNuevo() {
+            document.getElementById('formularioNuevo').style.display = 'none';
+            limpiarFormularioNuevo();
+        }
+
+        // Limpiar formulario nuevo
+        function limpiarFormularioNuevo() {
+            document.getElementById('nuevoCodigo').value = '';
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevaDescripcion').value = '';
+            document.getElementById('nuevoPrecioCompra').value = '';
+            document.getElementById('nuevoPrecioVenta').value = '';
+            document.getElementById('nuevaCantidad').value = '1';
+        }
+
+        // Agregar nuevo producto
+        function agregarNuevoProducto() {
+            const codigo = document.getElementById('nuevoCodigo').value.trim();
+            const nombre = document.getElementById('nuevoNombre').value.trim();
+            const descripcion = document.getElementById('nuevaDescripcion').value.trim();
+            const precioCompra = parseFloat(document.getElementById('nuevoPrecioCompra').value) || 0;
+            const precioVenta = parseFloat(document.getElementById('nuevoPrecioVenta').value) || 0;
+            const cantidad = parseInt(document.getElementById('nuevaCantidad').value) || 0;
+
+            if (!codigo || !nombre) {
+                alert('El código y el nombre son obligatorios');
+                return;
+            }
+
+            if (precioCompra <= 0 || precioVenta <= 0) {
+                alert('Los precios deben ser mayores a cero');
+                return;
+            }
+
+            if (cantidad <= 0) {
+                alert('La cantidad debe ser mayor a cero');
+                return;
+            }
+
+            agregarProductoALista({
+                idProducto: 0, // 0 indica que es un producto nuevo
+                codigo: codigo,
+                nombre: nombre,
+                descripcion: descripcion,
+                precioIngreso: precioCompra,
+                precioVenta: precioVenta,
+                cantidad: cantidad,
+                stockActual: 0
+            });
+
+            ocultarFormularioNuevo();
+        }
+
+        // Agregar producto a la lista
+        function agregarProductoALista(producto) {
+            // Verificar si ya está en la lista
+            const existente = productosParaIngresar.find(p => 
+                (p.idProducto > 0 && p.idProducto === producto.idProducto) || 
+                (p.idProducto === 0 && p.codigo === producto.codigo)
+            );
+            
+            if (existente) {
+                alert('Este producto ya está en la lista. Puede modificar la cantidad directamente en la tabla.');
+                return;
+            }
+
+            producto.index = productoIndex++;
+            productosParaIngresar.push(producto);
+            actualizarLista();
+        }
+
+        // Actualizar lista visual
+        function actualizarLista() {
+            const container = document.getElementById('listaProductos');
+            const resumen = document.getElementById('resumen');
+            
+            if (productosParaIngresar.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-box fa-3x mb-3"></i>
+                        <h5>No hay productos agregados</h5>
+                        <p>Busca productos o crea nuevos para agregarlos a la lista</p>
+                    </div>
+                `;
+                resumen.style.display = 'none';
+                document.getElementById('contadorProductos').textContent = '0 productos';
+                return;
+            }
+
+            let html = '<div class="table-responsive"><table class="table table-striped"><thead><tr>';
+            html += '<th>Código</th><th>Producto</th><th>Precio Compra</th><th>Precio Venta</th><th>Cantidad</th><th>Subtotal</th><th>Acciones</th>';
+            html += '</tr></thead><tbody>';
+
+            let totalUnidades = 0;
+            let valorTotal = 0;
+
+            productosParaIngresar.forEach(producto => {
+                const subtotal = producto.precioIngreso * producto.cantidad;
+                totalUnidades += producto.cantidad;
+                valorTotal += subtotal;
+
+                html += `
+                    <tr>
+                        <td><strong>${producto.codigo}</strong></td>
+                        <td>
+                            <strong>${producto.nombre}</strong>
+                            ${producto.descripcion ? `<br><small class="text-muted">${producto.descripcion}</small>` : ''}
+                            ${producto.idProducto === 0 ? '<br><span class="badge badge-success">Nuevo</span>' : ''}
+                        </td>
+                        <td class="text-right">Q ${producto.precioIngreso.toFixed(2)}</td>
+                        <td class="text-right">Q ${producto.precioVenta.toFixed(2)}</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" value="${producto.cantidad}" 
+                                   min="1" onchange="actualizarCantidad(${producto.index}, this.value)" style="width: 80px;">
+                        </td>
+                        <td class="text-right">Q ${subtotal.toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+
+            // Actualizar resumen
+            document.getElementById('totalProductos').textContent = productosParaIngresar.length;
+            document.getElementById('totalUnidades').textContent = totalUnidades;
+            document.getElementById('valorTotal').textContent = valorTotal.toFixed(2);
+            document.getElementById('contadorProductos').textContent = `${productosParaIngresar.length} productos`;
+            resumen.style.display = 'block';
+        }
+
+        // Actualizar cantidad
+        function actualizarCantidad(index, nuevaCantidad) {
+            const cantidad = parseInt(nuevaCantidad);
+            if (cantidad > 0) {
+                const producto = productosParaIngresar.find(p => p.index === index);
+                if (producto) {
+                    producto.cantidad = cantidad;
+                    actualizarLista();
+                }
+            }
+        }
+
+        // Eliminar producto
+        function eliminarProducto(index) {
+            productosParaIngresar = productosParaIngresar.filter(p => p.index !== index);
+            actualizarLista();
+        }
+
+        // Limpiar lista
+        function limpiarLista() {
+            if (confirm('¿Está seguro de limpiar toda la lista?')) {
+                productosParaIngresar = [];
+                actualizarLista();
+            }
+        }
+
+        // Procesar ingreso
+        function procesarIngreso() {
+            if (productosParaIngresar.length === 0) {
+                alert('No hay productos para procesar');
+                return;
+            }
+
+            console.log('Enviando productos:', productosParaIngresar);
+
+            // Asegurar que el modal esté inicializado
+            if (!loadingModal) {
+                inicializarModal();
+            }
+            
+            // Mostrar modal de carga
+            loadingModal.show();
+
+            fetch('@Url.Action("ProcesarIngreso", "Producto")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(productosParaIngresar)
+            })
+            .then(response => {
+                console.log('Respuesta recibida:', response);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos procesados:', data);
+                
+                // Cerrar modal
+                cerrarModal();
+                
+                if (data.success) {
+                    // Mostrar mensaje de éxito sin alert
+                    console.log(data.message);
+                    productosParaIngresar = [];
+                    actualizarLista();
+                    
+                    // Recargar la página para mostrar los cambios
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Cerrar modal
+                cerrarModal();
+                
+                alert('Error al procesar el ingreso: ' + error.message);
+            });
+        }
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarModal();
+            setupAutocomplete();
+            
+            document.getElementById('busquedaProducto').addEventListener('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    buscarProductos();
+                }
+            });
+        });
+    </script>
+}

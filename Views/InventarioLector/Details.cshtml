@@ -1,0 +1,87 @@
+@model ControlInventario.Models.Producto
+@{
+    ViewData["Title"] = "Detalles del Producto";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-box"></i> Detalles del Producto
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <dl class="row">
+                                <dt class="col-sm-3">Código:</dt>
+                                <dd class="col-sm-9">@Model.Codigo</dd>
+
+                                <dt class="col-sm-3">Nombre:</dt>
+                                <dd class="col-sm-9">@Model.Nombre</dd>
+
+                                <dt class="col-sm-3">Descripción:</dt>
+                                <dd class="col-sm-9">@Model.Descripcion</dd>
+
+                                <dt class="col-sm-3">Precio Ingreso:</dt>
+                                <dd class="col-sm-9">@Model.PrecioIngreso.ToString("C")</dd>
+
+                                <dt class="col-sm-3">Precio Venta:</dt>
+                                <dd class="col-sm-9">@Model.PrecioVenta.ToString("C")</dd>
+
+                                <dt class="col-sm-3">Stock Actual:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge @(Model.StockActual > 10 ? "bg-success" : Model.StockActual > 0 ? "bg-warning" : "bg-danger")">
+                                        @Model.StockActual unidades
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-3">Estado:</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Fecha Creación:</dt>
+                                <dd class="col-sm-9">@Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm")</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Información de Valor</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Valor Total en Stock:</strong></p>
+                                    <h3 class="text-primary">@(Model.StockActual * Model.PrecioIngreso).ToString("C")</h3>
+                                    <hr>
+                                    <p><strong>Potencial de Venta:</strong></p>
+                                    <h4 class="text-success">@(Model.StockActual * Model.PrecioVenta).ToString("C")</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver al Inventario
+                            </a>
+                            <a href="@Url.Action("Movimientos", new { id = Model.IdProducto })" class="btn btn-info">
+                                <i class="fas fa-history"></i> Ver Movimientos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

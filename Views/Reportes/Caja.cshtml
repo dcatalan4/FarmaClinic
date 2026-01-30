@@ -1,0 +1,351 @@
+@model ControlInventario.Controllers.CajaReporteViewModel
+@{
+    ViewData["Title"] = "Reporte de Caja";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-cash-register"></i> Reporte de Caja
+        </h1>
+        <div>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros del Reporte</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Caja" method="post" class="row g-3">
+                <div class="col-md-4">
+                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                    <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" 
+                           value="@Model.FechaInicio.ToString("yyyy-MM-dd")" required 
+                           max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label for="fechaFin" class="form-label">Fecha Fin</label>
+                    <input type="date" id="fechaFin" name="fechaFin" class="form-control" 
+                           value="@Model.FechaFin.ToString("yyyy-MM-dd")" required 
+                           max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Generar Reporte
+                    </button>
+                </div>
+            </form>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const fechaInicio = document.getElementById('fechaInicio');
+                    const fechaFin = document.getElementById('fechaFin');
+                    
+                    // Asegurar que fechaFin no sea anterior a fechaInicio
+                    fechaInicio.addEventListener('change', function() {
+                        if (fechaFin.value && fechaFin.value < this.value) {
+                            fechaFin.value = this.value;
+                        }
+                        fechaFin.min = this.value;
+                    });
+                    
+                    fechaFin.addEventListener('change', function() {
+                        if (this.value && this.value < fechaInicio.value) {
+                            this.value = fechaInicio.value;
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+
+    @if (Model.Movimientos != null && Model.Movimientos.Any())
+    {
+        <!-- Resumen General -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Movimientos</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalMovimientos</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Saldo Inicial</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.SaldoInicial.ToString("C")</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-arrow-down fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Saldo Final</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.SaldoFinal.ToString("C")</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Variación Neta</div>
+                                <div class="h5 mb-0 font-weight-bold @(Model.SaldoFinal >= Model.SaldoInicial ? "text-success" : "text-danger")">
+                                    @((Model.SaldoFinal - Model.SaldoInicial).ToString("C"))
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos y Tablas -->
+        <div class="row">
+            <!-- Resumen por Tipo -->
+            <div class="col-xl-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Resumen por Tipo de Movimiento</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-right">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tipo in Model.ResumenPorTipo)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-@(tipo.Tipo == "I" ? "success" : "danger")">
+                                                    @(tipo.Tipo == "I" ? "Ingreso" : "Egreso")
+                                                </span>
+                                            </td>
+                                            <td class="text-center">@tipo.Cantidad</td>
+                                            <td class="text-right">@tipo.MontoTotal.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flujo Diario -->
+                <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Fljo Diario</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th class="text-right">Ingresos</th>
+                                            <th class="text-right">Egresos</th>
+                                            <th class="text-right">Neto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var dia in Model.ResumenPorDia)
+                                        {
+                                            <tr>
+                                                <td>@dia.Fecha.ToString("dd/MM/yyyy")</td>
+                                                <td class="text-right text-success">@dia.Ingresos.ToString("C")</td>
+                                                <td class="text-right text-danger">@dia.Egresos.ToString("C")</td>
+                                                <td class="text-right font-weight-bold @(dia.Neto >= 0 ? "text-success" : "text-danger")">
+                                                    @dia.Neto.ToString("C")
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movimientos Detallados -->
+            <div class="col-lg-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Movimientos Detallados</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="movimientosTable">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Descripción</th>
+                                        <th>Monto</th>
+                                        <th>Saldo</th>
+                                        <th>Usuario</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var movimiento in Model.Movimientos)
+                                    {
+                                        <tr>
+                                            <td>@movimiento.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                <span class="badge bg-@(movimiento.TipoMovimiento == "I" ? "success" : "danger")">
+                                                    @(movimiento.TipoMovimiento == "I" ? "Ingreso" : "Egreso")
+                                                </span>
+                                            </td>
+                                            <td>@movimiento.Concepto</td>
+                                            <td class="text-right">@movimiento.Monto.ToString("C")</td>
+                                            <td class="text-right font-weight-bold @(movimiento.SaldoEnMomento >= 0 ? "text-success" : "text-danger")">
+                                                @movimiento.SaldoEnMomento.ToString("C")
+                                            </td>
+                                            <td>@(movimiento.IdUsuarioNavigation?.Nombre ?? "Sin usuario")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Seleccione un período y genere el reporte para ver los resultados.
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" />
+    
+    <script>
+        // Función para cargar scripts dinámicamente
+        function loadScript(src, callback) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = callback;
+            script.onerror = function() {
+                console.error('Error cargando script:', src);
+                callback();
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Función para inicializar DataTables
+        function initDataTables() {
+            // Verificar que jQuery y DataTables estén disponibles
+            if (typeof $ === 'undefined') {
+                console.error('jQuery no está disponible');
+                return;
+            }
+            
+            if (typeof $.fn.DataTable === 'undefined') {
+                console.log('Cargando DataTables...');
+                loadScript('https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js', function() {
+                    loadScript('https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js', function() {
+                        loadScript('https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js', function() {
+                            loadScript('https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js', function() {
+                                initializeDataTables();
+                            });
+                        });
+                    });
+                });
+                return;
+            }
+            
+            initializeDataTables();
+        }
+        
+        function initializeDataTables() {
+            console.log('Inicializando DataTables...');
+            
+            // Inicializar DataTable
+            $('#movimientosTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+                },
+                "pageLength": 25,
+                "order": [[0, "desc"]],
+                "responsive": true,
+                "dom": "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                       "<'row'<'col-sm-12'tr>>" +
+                       "<'row'<'col-sm-12'i>>",
+                "buttons": [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-success btn-sm'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i> Imprimir',
+                        className: 'btn btn-primary btn-sm'
+                    }
+                ]
+            });
+            
+            console.log('DataTable inicializado correctamente');
+        }
+        
+        // Esperar a que el DOM esté completamente cargado
+        $(document).ready(function() {
+            setTimeout(initDataTables, 100);
+        });
+    </script>
+}

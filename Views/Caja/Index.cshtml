@@ -1,0 +1,214 @@
+@model IEnumerable<ControlInventario.Models.MovimientoCaja>
+@{
+    ViewData["Title"] = "Estado de Caja";
+    var caja = ViewBag.Caja as ControlInventario.Models.Caja;
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-cash-register"></i> Estado de Caja
+        </h1>
+        <div>
+            <a href="@Url.Action("Agregar", "Caja")" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i> Agregar Efectivo
+            </a>
+            <a href="@Url.Action("Retirar", "Caja")" class="btn btn-danger">
+                <i class="fas fa-minus-circle"></i> Retirar Efectivo
+            </a>
+            <a href="@Url.Action("Movimientos", "Caja")" class="btn btn-info">
+                <i class="fas fa-list"></i> Ver Todos los Movimientos
+            </a>
+        </div>
+    </div>
+
+    <!-- Caja Status Card -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ingresos del Día
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                Q @Model.Where(m => m.TipoMovimiento?.ToUpper() == "I" && m.Fecha?.Date == DateTime.Today).Sum(m => m.Monto).ToString("N2")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-down fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Egresos del Día
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                Q @Model.Where(m => m.TipoMovimiento?.ToUpper() == "E" && m.Fecha?.Date == DateTime.Today).Sum(m => m.Monto).ToString("N2")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Caja
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @caja?.Nombre
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cash-register fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Saldo Actual
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                Q @caja?.SaldoActual.ToString("N2")
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Movements -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-history"></i> Movimientos Recientes
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-receipt fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No hay movimientos registrados</h5>
+                    <p class="text-gray-400">Comienza agregando efectivo a la caja</p>
+                    <a href="@Url.Action("Agregar", "Caja")" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Primer Movimiento
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Monto</th>
+                                <th>Concepto</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (item.TipoMovimiento?.ToUpper() == "I")
+                                        {
+                                            <span class="badge bg-success">Ingreso</span>
+                                        }
+                                        else if (item.TipoMovimiento?.ToUpper() == "E")
+                                        {
+                                            <span class="badge bg-danger">Egreso</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.TipoMovimiento</span>
+                                        }
+                                    </td>
+                                    <td class="text-right">
+                                        @if (item.TipoMovimiento?.ToUpper() == "I")
+                                        {
+                                            <span class="text-success">+Q @item.Monto.ToString("N2")</span>
+                                        }
+                                        else if (item.TipoMovimiento?.ToUpper() == "E")
+                                        {
+                                            <span class="text-danger">-Q @item.Monto.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-primary">Q @item.Monto.ToString("N2")</span>
+                                        }
+                                    </td>
+                                    <td>@item.Concepto</td>
+                                    <td>@item.IdUsuarioNavigation?.Nombre</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Caja", new { id = item.IdMovimientoCaja })" 
+                                           class="btn btn-info btn-sm" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="@Url.Action("Movimientos", "Caja")" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Ver Todos los Movimientos
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mostrar mensajes de éxito
+        @if (TempData["Success"] != null)
+        {
+            <text>
+            $(document).ready(function() {
+                // Mostrar notificación de éxito
+                var successMessage = '@TempData["Success"]';
+                // Aquí puedes usar tu sistema de notificaciones preferido
+                alert(successMessage);
+            });
+            </text>
+        }
+    </script>
+}

@@ -1,0 +1,204 @@
+@{
+    ViewData["Title"] = "Reportes";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-bar"></i> Reportes
+        </h1>
+        <div>
+            <span class="badge bg-info">Administrador</span>
+        </div>
+    </div>
+
+    <!-- Report Cards -->
+    <div class="row">
+        <!-- Reporte de Ventas -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <h5 class="card-title text-primary">Reporte de Ventas</h5>
+                            <p class="card-text text-muted">Análisis completo de ventas por período</p>
+                            <ul class="list-unstyled mt-3">
+                                <li><i class="fas fa-check text-success"></i> Ventas por vendedor</li>
+                                <li><i class="fas fa-check text-success"></i> Resumen diario</li>
+                                <li><i class="fas fa-check text-success"></i> Top productos</li>
+                                <li><i class="fas fa-check text-success"></i> Métricas clave</li>
+                            </ul>
+                            <a href="@Url.Action("Ventas")" class="btn btn-primary btn-sm mt-3">
+                                <i class="fas fa-arrow-right"></i> Generar Reporte
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-3x text-primary opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte de Caja -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <h5 class="card-title text-success">Reporte de Caja</h5>
+                            <p class="card-text text-muted">Movimientos y saldos de caja</p>
+                            <ul class="list-unstyled mt-3">
+                                <li><i class="fas fa-check text-success"></i> Ingresos y egresos</li>
+                                <li><i class="fas fa-check text-success"></i> Saldo por período</li>
+                                <li><i class="fas fa-check text-success"></i> Resumen diario</li>
+                                <li><i class="fas fa-check text-success"></i> Flujo de efectivo</li>
+                            </ul>
+                            <a href="@Url.Action("Caja")" class="btn btn-success btn-sm mt-3">
+                                <i class="fas fa-arrow-right"></i> Generar Reporte
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cash-register fa-3x text-success opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporte de Inventario -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <h5 class="card-title text-info">Reporte de Inventario</h5>
+                            <p class="card-text text-muted">Movimientos de productos</p>
+                            <ul class="list-unstyled mt-3">
+                                <li><i class="fas fa-check text-success"></i> Ingresos y egresos</li>
+                                <li><i class="fas fa-check text-success"></i> Por producto</li>
+                                <li><i class="fas fa-check text-success"></i> Por día</li>
+                                <li><i class="fas fa-check text-success"></i> Top movimientos</li>
+                            </ul>
+                            <a href="@Url.Action("Inventario")" class="btn btn-info btn-sm mt-3">
+                                <i class="fas fa-arrow-right"></i> Generar Reporte
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-3x text-info opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-primary">Ventas del Mes</h3>
+                                <h2 id="ventasMes" class="text-primary">0</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-success">Monto Total</h3>
+                                <h2 id="montoMes" class="text-success">Q 0.00</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-info">Movimientos Caja</h3>
+                                <h2 id="movimientosCaja" class="text-info">0</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-warning">Movimientos Inventario</h3>
+                                <h2 id="movimientosInventario" class="text-warning">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Cargar estadísticas rápidas
+            cargarEstadisticasRapidas();
+        });
+
+        function cargarEstadisticasRapidas() {
+            console.log('Iniciando carga de estadísticas rápidas...');
+            
+            // Obtener fecha actual
+            var hoy = new Date();
+            var primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            
+            console.log('Fecha actual:', hoy);
+            console.log('Primer día del mes:', primerDiaMes);
+            
+            $.ajax({
+                url: '/Reportes/GetEstadisticasRapidas',
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function() {
+                    console.log('Enviando petición a /Reportes/GetEstadisticasRapidas');
+                },
+                success: function(data) {
+                    console.log('Respuesta recibida:', data);
+                    console.log('ventasMes:', data.ventasMes);
+                    console.log('montoMes:', data.montoMes);
+                    console.log('movimientosCaja:', data.movimientosCaja);
+                    console.log('movimientosInventario:', data.movimientosInventario);
+                    
+                    // Verificar que los elementos existan
+                    console.log('Elemento ventasMes:', $('#ventasMes').length);
+                    console.log('Elemento montoMes:', $('#montoMes').length);
+                    console.log('Elemento movimientosCaja:', $('#movimientosCaja').length);
+                    console.log('Elemento movimientosInventario:', $('#movimientosInventario').length);
+                    
+                    // Actualizar valores
+                    $('#ventasMes').text(data.ventasMes || 0);
+                    $('#montoMes').text('Q ' + (data.montoMes || 0).toFixed(2));
+                    $('#movimientosCaja').text(data.movimientosCaja || 0);
+                    $('#movimientosInventario').text(data.movimientosInventario || 0);
+                    
+                    // Verificar que se actualizaron
+                    console.log('Valor actualizado ventasMes:', $('#ventasMes').text());
+                    console.log('Valor actualizado montoMes:', $('#montoMes').text());
+                    console.log('Valor actualizado movimientosCaja:', $('#movimientosCaja').text());
+                    console.log('Valor actualizado movimientosInventario:', $('#movimientosInventario').text());
+                    
+                    console.log('Estadísticas actualizadas en la vista');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al cargar estadísticas rápidas:', error);
+                    console.error('Status:', status);
+                    console.error('Response Text:', xhr.responseText);
+                    console.error('Status Code:', xhr.status);
+                    console.error('Ready State:', xhr.readyState);
+                    
+                    // Mostrar valores por defecto en caso de error
+                    $('#ventasMes').text('0');
+                    $('#montoMes').text('Q 0.00');
+                    $('#movimientosCaja').text('0');
+                    $('#movimientosInventario').text('0');
+                }
+            });
+        }
+    </script>
+}

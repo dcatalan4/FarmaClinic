@@ -1,0 +1,135 @@
+@model IEnumerable<ControlInventario.Models.Ventum>
+@{
+    ViewData["Title"] = "Ventas";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Ventas</h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Venta
+        </a>
+    </div>
+
+    <!-- Filtro de Fechas -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtro de Fechas</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                    <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" 
+                           value="@ViewBag.FechaInicio" />
+                </div>
+                <div class="col-md-4">
+                    <label for="fechaFin" class="form-label">Fecha Fin</label>
+                    <input type="date" id="fechaFin" name="fechaFin" class="form-control" 
+                           value="@ViewBag.FechaFin" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Ventas</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>N° Venta</th>
+                            <th>Fecha</th>
+                            @if (ViewBag.EsAdmin == true)
+                            {
+                                <th>Usuario</th>
+                            }
+                            <th>Subtotal</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.NumeroVenta</td>
+                                <td>@item.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                @if (ViewBag.EsAdmin == true)
+                                {
+                                    <td>@item.IdUsuarioNavigation?.Nombre</td>
+                                }
+                                <td class="text-right">Q @item.Subtotal.ToString("N2")</td>
+                                <td class="text-right font-weight-bold">Q @item.Total.ToString("N2")</td>
+                                <td>
+                                    @if (item.Anulada == true)
+                                    {
+                                        <span class="badge bg-danger">Anulada</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@item.IdVenta" class="btn btn-info btn-sm" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (item.Anulada != true)
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@item.IdVenta" class="btn btn-danger btn-sm" title="Anular venta">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge {
+        padding: 0.5em 0.75em;
+        font-size: 0.75em;
+    }
+    .badge-success {
+        background-color: #28a745;
+    }
+    .badge-danger {
+        background-color: #dc3545;
+    }
+    .table th {
+        background-color: #f8f9fa;
+        color: #17a2b8;
+        font-weight: 600;
+        border-top: none;
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+    .card {
+        border: 1px solid #e9ecef;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+</style>

@@ -1,0 +1,132 @@
+@model IEnumerable<ControlInventario.Models.MovimientoInventario>
+@{
+    ViewData["Title"] = "Movimientos de Inventario";
+    var producto = ViewBag.Producto as ControlInventario.Models.Producto;
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Movimientos de Inventario</h1>
+            <p class="text-muted">Producto: <strong>@producto.Nombre</strong> (@producto.Codigo)</p>
+        </div>
+        <div>
+            <a href="@Url.Action("Edit", "Producto", new { id = producto.IdProducto })" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar Producto
+            </a>
+            <a href="@Url.Action("Index", "Producto")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Product Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1">Stock Actual</div>
+                    <div class="h5 mb-0 font-weight-bold">@producto.StockActual</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1">Total Entradas</div>
+                    <div class="h5 mb-0 font-weight-bold">
+                        @Model.Where(m => m.TipoMovimiento == "E").Sum(m => m.Cantidad)
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1">Total Salidas</div>
+                    <div class="h5 mb-0 font-weight-bold">
+                        @Model.Where(m => m.TipoMovimiento == "S").Sum(m => m.Cantidad)
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-uppercase mb-1">Total Movimientos</div>
+                    <div class="h5 mb-0 font-weight-bold">@Model.Count()</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Historial de Movimientos</h6>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-history fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No hay movimientos registrados</h5>
+                    <p class="text-gray-400">Este producto aún no tiene movimientos de inventario.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Referencia</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (item.TipoMovimiento == "E")
+                                        {
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-arrow-down"></i> Entrada
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-arrow-up"></i> Salida
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>@item.Cantidad</strong>
+                                    </td>
+                                    <td>@item.Referencia</td>
+                                    <td>
+                                        @if (item.IdUsuarioNavigation != null)
+                                        {
+                                            @item.IdUsuarioNavigation.Nombre
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Usuario @item.IdUsuario</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

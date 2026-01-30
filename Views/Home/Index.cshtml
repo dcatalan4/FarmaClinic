@@ -1,0 +1,261 @@
+﻿@model ControlInventario.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - Control de Inventario";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard Principal</h1>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row">
+        <!-- Productos -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Productos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalProductos</div>
+                            <div class="text-xs text-gray-500">@Model.ProductosActivos activos</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bajo Stock -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Productos Bajo Stock</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ProductosBajoStock</div>
+                            <div class="text-xs text-gray-500">Menos de 10 unidades</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventas Hoy -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ventas Hoy</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.VentasHoy</div>
+                            <div class="text-xs text-gray-500">Q @Model.VentasHoyMonto.ToString("N2")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saldo de Caja -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Saldo Total Cajas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Q @Model.SaldoCajaPrincipal.ToString("N2")</div>
+                            <div class="text-xs text-gray-500">@Model.CajasActivas cajas activas</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Adicionales y Tablas -->
+    <div class="row">
+        <!-- Ventas del Mes -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Ventas del Mes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-lg font-weight-bold text-success">@Model.VentasMes</div>
+                                <div class="text-xs text-gray-500">Ventas Totales</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-lg font-weight-bold text-primary">Q @Model.VentasMesMonto.ToString("N2")</div>
+                                <div class="text-xs text-gray-500">Monto Total</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-center">
+                            <div class="text-sm font-weight-bold text-gray-800">Valor del Inventario</div>
+                            <div class="text-lg font-weight-bold text-info">Q @Model.ValorTotalInventario.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Más Vendidos -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Productos Más Vendidos (Últimos 30 días)</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.ProductosMasVendidos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-right">Total Vendido</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var producto in Model.ProductosMasVendidos)
+                                    {
+                                        <tr>
+                                            <td>@producto.Nombre</td>
+                                            <td class="text-center">@producto.CantidadVendida</td>
+                                            <td class="text-right">Q @producto.TotalVendido.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-gray-500 py-3">
+                            No hay ventas registradas en los últimos 30 días
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas Recientes -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Ventas Recientes</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.VentasRecientes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>N° Venta</th>
+                                        <th>Fecha</th>
+                                        <th>Usuario</th>
+                                        <th class="text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var venta in Model.VentasRecientes)
+                                    {
+                                        <tr>
+                                            <td>@venta.NumeroVenta</td>
+                                            <td>@venta.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@venta.UsuarioNombre</td>
+                                            <td class="text-right font-weight-bold">Q @venta.Total.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-gray-500 py-3">
+                            No hay ventas registradas
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 4px solid #17a2b8 !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #28a745 !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #20c997 !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #6f42c1 !important;
+    }
+    .text-primary {
+        color: #17a2b8 !important;
+    }
+    .text-success {
+        color: #28a745 !important;
+    }
+    .text-info {
+        color: #20c997 !important;
+    }
+    .text-warning {
+        color: #6f42c1 !important;
+    }
+    .card {
+        transition: transform 0.2s;
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(23, 162, 184, 0.15);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table {
+        color: #495057;
+    }
+    .table th {
+        border-top: none;
+        background-color: #f8f9fa;
+        color: #17a2b8;
+        font-weight: 600;
+    }
+    body {
+        background-color: #f8f9fa;
+    }
+</style>

@@ -1,0 +1,32 @@
+# Archivos y carpetas a excluir del build
+**/.classpath
+**/.project
+**/.settings
+**/.tooltarget
+**/.vs
+**/.vscode
+**/.idea
+/**/Node_modules
+/**/bower_components
+/**/jspm_packages
+/**/bin
+**/obj
+**/[Oo]bj
+/**/*.user
+**/*.suo
+**/*.cache
+**/*.dll
+**/*.exe
+**/*.log
+**/*.pdb
+**/.DS_Store
+**/Thumbs.db
+
+# Excluir archivos específicos del proyecto
+appsettings.Development.json
+appsettings.Local.json
+*.md
+REFERENCIA_TABLAS.md
+.git
+.gitignore
+README.md

@@ -1,0 +1,184 @@
+@model IEnumerable<ControlInventario.Models.Producto>
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gestión de Productos</h1>
+        <a href="@Url.Action("Create", "Producto")" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Producto
+        </a>
+    </div>
+
+    <!-- Search and Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Buscar Productos</h5>
+                    <form method="get" asp-action="Index">
+                        <div class="input-group">
+                            <input type="text" name="busqueda" class="form-control" 
+                                   placeholder="Buscar por código, nombre o descripción..." 
+                                   value="@ViewBag.CurrentBusqueda">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Productos</div>
+                            <div class="h5 mb-0 font-weight-bold">@ViewBag.TotalProductos</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Productos</h6>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-box fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No se encontraron productos</h5>
+                    <p class="text-gray-400">
+                        @if (!string.IsNullOrEmpty(ViewBag.CurrentBusqueda))
+                        {
+                            <span>No hay productos que coincidan con "@ViewBag.CurrentBusqueda"</span>
+                        }
+                        else
+                        {
+                            <span>No hay productos registrados. ¡Crea el primero!</span>
+                        }
+                    </p>
+                    <a href="@Url.Action("Create", "Producto")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primer Producto
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Precio Venta</th>
+                                <th>Stock Actual</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td><strong>@item.Codigo</strong></td>
+                                    <td><strong>@item.Nombre</strong></td>
+                                    <td>@item.Descripcion</td>
+                                    <td class="text-right">Q @item.PrecioVenta.ToString("N2")</td>
+                                    <td class="text-right">
+                                        <strong>@item.StockActual</strong>
+                                    </td>
+                                    <td>
+                                        @if (item.Activo == true)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Details", "Producto", new { id = item.IdProducto })" 
+                                               class="btn btn-info btn-sm" title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="@Url.Action("Edit", "Producto", new { id = item.IdProducto })" 
+                                               class="btn btn-warning btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @if (item.Activo == true)
+                                            {
+                                                <a href="@Url.Action("Delete", "Producto", new { id = item.IdProducto })" 
+                                                   class="btn btn-danger btn-sm" title="Desactivar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.Action("Activar", "Producto", new { id = item.IdProducto })" 
+                                                   class="btn btn-success btn-sm" title="Activar">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { busqueda = ViewBag.CurrentBusqueda, page = ViewBag.CurrentPage - 1 })">
+                                        <i class="fas fa-chevron-left"></i> Anterior
+                                    </a>
+                                </li>
+                            }
+
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { busqueda = ViewBag.CurrentBusqueda, page = i })">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { busqueda = ViewBag.CurrentBusqueda, page = ViewBag.CurrentPage + 1 })">
+                                        Siguiente <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>

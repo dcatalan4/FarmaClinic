@@ -1,0 +1,382 @@
+@model ControlInventario.Models.MovimientoCaja
+@{
+    ViewData["Title"] = "Agregar Efectivo";
+    var caja = ViewBag.Caja as ControlInventario.Models.Caja;
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle text-success"></i> Agregar Efectivo
+        </h1>
+        <div>
+            <a href="@Url.Action("Index", "Caja")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Current Balance Card -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-6">
+            <div class="card border-left-success shadow">
+                <div class="card-body">
+                    <div class="text-center">
+                        <h6 class="text-success">Saldo Actual</h6>
+                        <h2 class="text-success">Q @caja?.SaldoActual.ToString("N2")</h2>
+                        <small class="text-muted">@caja?.Nombre</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Money Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Información del Movimiento</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Agregar">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Monto" class="control-label">Monto a Agregar</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Q</span>
+                                </div>
+                                <input asp-for="Monto" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" />
+                            </div>
+                            <span asp-validation-for="Monto" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="control-label">Motivo del Movimiento</label>
+                            <select name="motivoSeleccionado" class="form-select" id="motivoSeleccionado">
+                                <option value="">Seleccione un motivo...</option>
+                                <option value="Venta del día">Venta del día</option>
+                                <option value="Depósito inicial">Depósito inicial</option>
+                                <option value="Transferencia bancaria">Transferencia bancaria</option>
+                                <option value="Ajuste de saldo">Ajuste de saldo</option>
+                                <option value="Otros ingresos">Otros ingresos</option>
+                                <option value="Otro">Otro (especificar)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3" id="otroMotivoGroup" style="display: none;">
+                            <label class="control-label">Especifique el motivo</label>
+                            <input type="text" name="otroMotivo" class="form-control" placeholder="Describa el motivo..." />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Concepto" class="control-label">Notas Adicionales (Opcional)</label>
+                            <textarea asp-for="Concepto" class="form-control" rows="3" placeholder="Agregue cualquier nota adicional..."></textarea>
+                            <span asp-validation-for="Concepto" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Información:</strong> Este movimiento incrementará el saldo de la caja en el monto especificado.
+                        </div>
+
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-success btn-lg" id="btnAgregar">
+                                <i class="fas fa-plus-circle"></i> Agregar Efectivo
+                            </button>
+                            <a href="@Url.Action("Index", "Caja")" class="btn btn-secondary btn-lg ml-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Resumen -->
+<div class="modal fade" id="resumenModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="resumenModalHeader">
+                <h5 class="modal-title" id="resumenModalTitle">
+                    <i class="fas fa-check-circle"></i> Operación Exitosa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="resumenContenido">
+                    <!-- El contenido se llenará dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="irAIndex()">
+                    <i class="fas fa-home"></i> Ir a Estado de Caja
+                </button>
+                <button type="button" class="btn btn-success" onclick="agregarOtro()">
+                    <i class="fas fa-plus"></i> Agregar Otro
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Error -->
+<div class="modal fade" id="errorModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Error
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="errorContenido">
+                    <!-- El contenido se llenará dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#motivoSeleccionado').change(function() {
+                if ($(this).val() === 'Otro') {
+                    $('#otroMotivoGroup').show();
+                    $('input[name="otroMotivo"]').prop('required', true);
+                } else {
+                    $('#otroMotivoGroup').hide();
+                    $('input[name="otroMotivo"]').prop('required', false);
+                }
+            });
+
+            // Formato de moneda
+            $('#Monto').on('input', function() {
+                var value = $(this).val();
+                if (value && !isNaN(value)) {
+                    $(this).val(parseFloat(value).toFixed(2));
+                }
+            });
+
+            // Manejar envío del formulario con AJAX
+            $('form').submit(function(e) {
+                e.preventDefault();
+                
+                // Obtener el token anti-forgery
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                
+                var formData = {
+                    Monto: parseFloat($('#Monto').val()) || 0,
+                    Concepto: $('#Concepto').val() || '',
+                    motivoSeleccionado: $('#motivoSeleccionado').val() || '',
+                    otroMotivo: $('#otroMotivo').val() || '',
+                    __RequestVerificationToken: token
+                };
+
+                console.log('FormData enviado:', JSON.stringify(formData, null, 2));
+                console.log('Monto:', formData.Monto);
+                console.log('Concepto:', formData.Concepto);
+                console.log('motivoSeleccionado:', formData.motivoSeleccionado);
+                console.log('otroMotivo:', formData.otroMotivo);
+                console.log('Token:', token);
+
+                // Validar monto
+                if (!formData.Monto || formData.Monto <= 0) {
+                    mostrarError('Por favor, ingrese un monto válido mayor a cero.');
+                    return;
+                }
+
+                // Validar motivo
+                if (!formData.motivoSeleccionado) {
+                    mostrarError('Por favor, seleccione un motivo para el movimiento.');
+                    return;
+                }
+
+                // Validar motivo "Otro"
+                if (formData.motivoSeleccionado === 'Otro' && !formData.otroMotivo) {
+                    mostrarError('Por favor, especifique el motivo cuando selecciona "Otro".');
+                    return;
+                }
+
+                // Deshabilitar botón y mostrar loading
+                $('#btnAgregar').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+
+                // Enviar solicitud AJAX
+                $.ajax({
+                    url: '@Url.Action("Agregar", "Caja")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        console.log('Respuesta cruda:', response);
+                        console.log('Tipo de dato:', typeof response);
+                        
+                        // Si la respuesta es string, parsearla
+                        let data;
+                        if (typeof response === 'string') {
+                            try {
+                                data = JSON.parse(response);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                                mostrarError('Error al procesar la respuesta del servidor');
+                                return;
+                            }
+                        } else {
+                            data = response;
+                        }
+                        
+                        console.log('Respuesta procesada:', data);
+                        
+                        if (data && data.success) {
+                            mostrarResumen(data.resumen);
+                            // Limpiar formulario
+                            $('form')[0].reset();
+                            $('#otroMotivoGroup').hide();
+                        } else {
+                            mostrarError(data ? data.message : 'Error desconocido');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Error AJAX - Status:', status);
+                        console.log('Error AJAX - Error:', error);
+                        console.log('Error AJAX - Status Text:', xhr.statusText);
+                        console.log('Error AJAX - Response Text:', xhr.responseText);
+                        console.log('Error AJAX - Response Code:', xhr.status);
+                        
+                        let errorMessage = 'Error de conexión: ' + error;
+                        
+                        if (xhr.status === 400) {
+                            errorMessage = 'Error 400 - Solicitud incorrecta. Verifique los datos enviados.';
+                            if (xhr.responseText) {
+                                try {
+                                    const errorData = JSON.parse(xhr.responseText);
+                                    errorMessage = errorData.message || errorMessage;
+                                } catch (e) {
+                                    errorMessage = 'Error 400 - ' + xhr.responseText;
+                                }
+                            }
+                        } else if (xhr.status === 500) {
+                            errorMessage = 'Error 500 - Error interno del servidor';
+                        } else if (xhr.responseText) {
+                            try {
+                                const errorData = JSON.parse(xhr.responseText);
+                                errorMessage = errorData.message || errorMessage;
+                            } catch (e) {
+                                errorMessage = 'Error del servidor: ' + xhr.statusText;
+                            }
+                        }
+                        
+                        mostrarError(errorMessage);
+                    },
+                    complete: function() {
+                        // Restaurar botón
+                        $('#btnAgregar').prop('disabled', false).html('<i class="fas fa-plus-circle"></i> Agregar Efectivo');
+                    }
+                });
+            });
+        });
+
+        function mostrarResumen(resumen) {
+            var html = `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle"></i> Operación Completada Exitosamente</h6>
+                            <p class="mb-0">${resumen.message}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Tipo de Operación:</strong><br>
+                        <span class="badge bg-success fs-6">${resumen.tipoOperacion}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Monto:</strong><br>
+                        <span class="text-success fs-5">+Q ${resumen.monto.toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Saldo Anterior:</strong><br>
+                        Q ${resumen.saldoAnterior.toFixed(2)}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Saldo Nuevo:</strong><br>
+                        <span class="text-success fs-5">Q ${resumen.saldoNuevo.toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <strong>Concepto:</strong><br>
+                        ${resumen.concepto}
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <strong>Fecha:</strong><br>
+                        ${resumen.fecha}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Caja:</strong><br>
+                        ${resumen.caja}
+                    </div>
+                </div>
+            `;
+
+            $('#resumenContenido').html(html);
+            $('#resumenModalHeader').removeClass().addClass('modal-header bg-success text-white');
+            $('#resumenModalTitle').html('<i class="fas fa-check-circle"></i> Ingreso Exitoso');
+            
+            var modal = new bootstrap.Modal(document.getElementById('resumenModal'));
+            modal.show();
+        }
+
+        function mostrarError(mensaje) {
+            var html = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                    <p class="mb-0">${mensaje}</p>
+                </div>
+            `;
+
+            $('#errorContenido').html(html);
+            var modal = new bootstrap.Modal(document.getElementById('errorModal'));
+            
+            // Corregir problema de accesibilidad: remover aria-hidden antes de mostrar
+            $('#errorModal').removeAttr('aria-hidden');
+            modal.show();
+            
+            // Restaurar aria-hidden cuando se cierra
+            $('#errorModal').on('hidden.bs.modal', function () {
+                $(this).attr('aria-hidden', 'true');
+            });
+        }
+
+        function irAIndex() {
+            window.location.href = '@Url.Action("Index", "Caja")';
+        }
+
+        function agregarOtro() {
+            var modal = bootstrap.Modal.getInstance(document.getElementById('resumenModal'));
+            modal.hide();
+            
+            // Limpiar formulario para nueva operación
+            $('form')[0].reset();
+            $('#otroMotivoGroup').hide();
+            $('#Monto').focus();
+        }
+    </script>
+}
