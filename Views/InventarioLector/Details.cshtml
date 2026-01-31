@@ -52,7 +52,7 @@
                                 </dd>
 
                                 <dt class="col-sm-3">Fecha Creación:</dt>
-                                <dd class="col-sm-9">@Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm")</dd>
+                                <dd class="col-sm-9">@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaCreacion))</dd>
                             </dl>
                         </div>
                         <div class="col-md-4">

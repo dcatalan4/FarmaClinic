@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Models.Ventum
 @{
     ViewData["Title"] = "Anular Venta";
@@ -31,7 +32,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="font-weight-bold">Fecha:</label>
-                                <p>@Model.Fecha?.ToString("dd/MM/yyyy HH:mm")</p>
+                                <p>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.Fecha))</p>
                             </div>
                         </div>
                         <div class="col-md-6">

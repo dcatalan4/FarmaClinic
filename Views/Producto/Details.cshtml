@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Models.Producto
 @{
     ViewData["Title"] = "Detalles del Producto";
@@ -106,7 +107,7 @@
                             <div class="form-group">
                                 <label class="font-weight-bold">Fecha de Creación</label>
                                 <p class="form-control-plaintext">
-                                    @(Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm") ?? "No registrada")
+                                    @(Model.FechaCreacion != null ? DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaCreacion)) : "No registrada")
                                 </p>
                             </div>
                         </div>

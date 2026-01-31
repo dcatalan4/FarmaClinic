@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Controllers.InventarioReporteViewModel
 @{
     ViewData["Title"] = "Reporte de Inventario";
@@ -69,7 +70,7 @@
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Período</div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    @Model.FechaInicio.ToString("dd/MM/yyyy") - @Model.FechaFin.ToString("dd/MM/yyyy")
+                                    @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaInicio), "dd/MM/yyyy") - @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaFin), "dd/MM/yyyy")
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -243,7 +244,7 @@
                                     @foreach (var dia in Model.ResumenPorDia)
                                     {
                                         <tr>
-                                            <td>@dia.Fecha.ToString("dd/MM/yyyy")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(dia.Fecha), "dd/MM/yyyy")</td>
                                             <td class="text-center text-success">@dia.Ingresos</td>
                                             <td class="text-center text-danger">@dia.Egresos</td>
                                             <td class="text-center font-weight-bold @(dia.Neto >= 0 ? "text-success" : "text-danger")">
@@ -280,7 +281,7 @@
                                     @foreach (var movimiento in Model.Movimientos)
                                     {
                                         <tr>
-                                            <td>@movimiento.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(movimiento.Fecha))</td>
                                             <td>
                                                 <span class="badge bg-@(movimiento.TipoMovimiento == "E" ? "success" : "danger")">
                                                     @(movimiento.TipoMovimiento == "E" ? "Entrada" : "Salida")

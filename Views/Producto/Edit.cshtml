@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Models.Producto
 @{
     ViewData["Title"] = "Editar Producto";
@@ -123,7 +124,7 @@
                                     <strong>ID:</strong> @Model.IdProducto
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>Fecha de Creación:</strong> @(Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm") ?? "No registrada")
+                                    <strong>Fecha de Creación:</strong> @(Model.FechaCreacion != null ? DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaCreacion)) : "No registrada")
                                 </div>
                             </div>
                         </div>

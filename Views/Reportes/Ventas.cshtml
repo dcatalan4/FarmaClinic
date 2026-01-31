@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Controllers.VentasReporteViewModel
 @{
     ViewData["Title"] = "Reporte de Ventas";
@@ -101,7 +102,7 @@
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Período</div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    @Model.FechaInicio.ToString("dd/MM/yyyy") - @Model.FechaFin.ToString("dd/MM/yyyy")
+                                    @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaInicio), "dd/MM/yyyy") - @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaFin), "dd/MM/yyyy")
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -202,7 +203,7 @@
                                     @foreach (var dia in Model.ResumenPorDia)
                                     {
                                         <tr>
-                                            <td>@dia.Fecha.ToString("dd/MM/yyyy")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(dia.Fecha), "dd/MM/yyyy")</td>
                                             <td class="text-center">@dia.CantidadVentas</td>
                                             <td class="text-right">@dia.MontoTotal.ToString("C")</td>
                                             <td class="text-right">@dia.TicketPromedio.ToString("C")</td>
@@ -240,7 +241,7 @@
                                     {
                                         <tr class="@(venta.Anulada == true ? "table-secondary" : "")">
                                             <td>@venta.NumeroVenta</td>
-                                            <td>@venta.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(venta.Fecha))</td>
                                             <td>@(venta.IdUsuarioNavigation?.Nombre ?? "Sin usuario")</td>
                                             <td>@(venta.DetalleVenta?.Count ?? 0)</td>
                                             <td class="text-center">

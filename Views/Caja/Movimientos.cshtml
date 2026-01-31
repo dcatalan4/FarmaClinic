@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model IEnumerable<ControlInventario.Models.MovimientoCaja>
 @{
     ViewData["Title"] = "Movimientos de Caja";
@@ -167,8 +168,8 @@
                                         <span class="badge bg-secondary">@item.IdMovimientoCaja</span>
                                     </td>
                                     <td>
-                                        <div>@item.Fecha?.ToString("dd/MM/yyyy")</div>
-                                        <small class="text-muted">@item.Fecha?.ToString("HH:mm:ss")</small>
+                                        <div>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(item.Fecha), "dd/MM/yyyy")</div>
+                                        <small class="text-muted">@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(item.Fecha), "HH:mm:ss")</small>
                                     </td>
                                     <td class="text-center">
                                         @if (item.TipoMovimiento?.ToUpper() == "I")

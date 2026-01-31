@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model IEnumerable<ControlInventario.Models.Ventum>
 @{
     ViewData["Title"] = "Ventas";
@@ -66,7 +67,7 @@
                         {
                             <tr>
                                 <td>@item.NumeroVenta</td>
-                                <td>@item.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(item.Fecha))</td>
                                 @if (ViewBag.EsAdmin == true)
                                 {
                                     <td>@item.IdUsuarioNavigation?.Nombre</td>

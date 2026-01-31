@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Controllers.CajaReporteViewModel
 @{
     ViewData["Title"] = "Reporte de Caja";
@@ -194,7 +195,7 @@
                                         @foreach (var dia in Model.ResumenPorDia)
                                         {
                                             <tr>
-                                                <td>@dia.Fecha.ToString("dd/MM/yyyy")</td>
+                                                <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(dia.Fecha), "dd/MM/yyyy")</td>
                                                 <td class="text-right text-success">@dia.Ingresos.ToString("C")</td>
                                                 <td class="text-right text-danger">@dia.Egresos.ToString("C")</td>
                                                 <td class="text-right font-weight-bold @(dia.Neto >= 0 ? "text-success" : "text-danger")">
@@ -233,7 +234,7 @@
                                     @foreach (var movimiento in Model.Movimientos)
                                     {
                                         <tr>
-                                            <td>@movimiento.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(movimiento.Fecha))</td>
                                             <td>
                                                 <span class="badge bg-@(movimiento.TipoMovimiento == "I" ? "success" : "danger")">
                                                     @(movimiento.TipoMovimiento == "I" ? "Ingreso" : "Egreso")

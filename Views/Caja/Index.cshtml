@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model IEnumerable<ControlInventario.Models.MovimientoCaja>
 @{
     ViewData["Title"] = "Estado de Caja";
@@ -143,7 +144,7 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
-                                    <td>@item.Fecha?.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(item.Fecha))</td>
                                     <td>
                                         @if (item.TipoMovimiento?.ToUpper() == "I")
                                         {

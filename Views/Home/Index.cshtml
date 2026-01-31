@@ -1,4 +1,5 @@
-﻿@model ControlInventario.Models.DashboardViewModel
+﻿@using ControlInventario.Helpers
+@model ControlInventario.Models.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard - Control de Inventario";
 }
@@ -187,7 +188,7 @@
                                     {
                                         <tr>
                                             <td>@venta.NumeroVenta</td>
-                                            <td>@venta.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(venta.Fecha))</td>
                                             <td>@venta.UsuarioNombre</td>
                                             <td class="text-right font-weight-bold">Q @venta.Total.ToString("N2")</td>
                                         </tr>

@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Models.DashboardAdminViewModel
 @{
     ViewData["Title"] = "Dashboard Administrador";
@@ -297,7 +298,7 @@
                                     {
                                         <tr>
                                             <td>@venta.NumeroVenta</td>
-                                            <td>@venta.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(venta.Fecha))</td>
                                             <td>@venta.UsuarioNombre</td>
                                             <td class="text-right">@venta.Total.ToString("C")</td>
                                         </tr>

@@ -1,3 +1,4 @@
+@using ControlInventario.Helpers
 @model ControlInventario.Models.MovimientoCaja
 @{
     ViewData["Title"] = "Detalles del Movimiento";
@@ -38,7 +39,7 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Fecha y Hora:</label>
                                 <div class="form-control-plaintext">
-                                    <i class="fas fa-calendar"></i> @Model.Fecha?.ToString("dd/MM/yyyy HH:mm:ss")
+                                    <i class="fas fa-calendar"></i> @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.Fecha), "dd/MM/yyyy HH:mm:ss")
                                 </div>
                             </div>
 
@@ -140,7 +141,7 @@
                                     }
                                 </p>    
                                 <p class="mb-0">
-                                    El movimiento fue registrado por <strong>@Model.IdUsuarioNavigation?.Nombre</strong> el día @Model.Fecha?.ToString("dd/MM/yyyy") a las @Model.Fecha?.ToString("HH:mm").
+                                    El movimiento fue registrado por <strong>@Model.IdUsuarioNavigation?.Nombre</strong> el día @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.Fecha), "dd/MM/yyyy") a las @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.Fecha), "HH:mm").
                                 </p>
                             </div>
                         </div>
