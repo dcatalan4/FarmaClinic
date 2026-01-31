@@ -3,6 +3,9 @@
     ViewData["Title"] = "Nuevo Producto";
 }
 
+<!-- Incluir DateTime Helper -->
+<script src="~/js/datetime-helper.js"></script>
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -110,4 +113,16 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Agregar fecha y hora del cliente al formulario
+                    DateTimeClientHelper.addClientDateTimeToForm(form);
+                    console.log('Fecha del cliente agregada al formulario de producto');
+                });
+            }
+        });
+    </script>
 }

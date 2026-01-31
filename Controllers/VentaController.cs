@@ -136,7 +136,23 @@ namespace ControlInventario.Controllers
             if (ModelState.IsValid)
             {
                 // Generar número de venta único usando fecha del cliente
-                var clientDate = !string.IsNullOrEmpty(clientDateTime) ? DateTime.Parse(clientDateTime) : (DateTime?)null;
+                DateTime? clientDate = null;
+                if (!string.IsNullOrEmpty(clientDateTime))
+                {
+                    // Parsear la fecha local del cliente (formato: yyyy-MM-ddTHH:mm:ss)
+                    string[] formats = { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm:ss" };
+                    if (DateTime.TryParseExact(clientDateTime, formats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                    {
+                        clientDate = parsedDate;
+                        Console.WriteLine($"Fecha del cliente recibida: {clientDateTime}");
+                        Console.WriteLine($"Fecha parseada: {parsedDate} (Kind: {parsedDate.Kind})");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error al parsear fecha del cliente: {clientDateTime}");
+                    }
+                }
+                
                 var numeroVenta = DateTimeHelper.GenerateVentaNumber(clientDate);
                 ventum.NumeroVenta = numeroVenta;
 

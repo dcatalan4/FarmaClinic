@@ -4,6 +4,9 @@
     ViewData["Title"] = "Editar Producto";
 }
 
+<!-- Incluir DateTime Helper -->
+<script src="~/js/datetime-helper.js"></script>
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -153,6 +156,16 @@
     <script>
         // Calcular margen de ganancia en tiempo real
         document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Agregar fecha y hora del cliente al formulario
+                    DateTimeClientHelper.addClientDateTimeToForm(form);
+                    console.log('Fecha del cliente agregada al formulario de edición de producto');
+                });
+            }
+            
+            // Calcular margen de ganancia
             const precioIngreso = document.getElementById('PrecioIngreso');
             const precioVenta = document.getElementById('PrecioVenta');
             

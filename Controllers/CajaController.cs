@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ControlInventario.Models;
+using ControlInventario.Helpers;
 using System.Security.Claims;
 
 namespace ControlInventario.Controllers
@@ -37,7 +38,7 @@ namespace ControlInventario.Controllers
                         Nombre = "Caja Principal",
                         SaldoActual = 0,
                         Activa = true,
-                        FechaCreacion = DateTime.Now
+                        FechaCreacion = DateTimeHelper.GetClientDateTime()
                     };
                     _context.Cajas.Add(cajaPrincipal);
                     await _context.SaveChangesAsync();
@@ -123,7 +124,7 @@ namespace ControlInventario.Controllers
         // POST: Caja/Agregar
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Agregar(decimal Monto, string Concepto, string motivoSeleccionado, string otroMotivo)
+        public async Task<IActionResult> Agregar(decimal Monto, string Concepto, string motivoSeleccionado, string otroMotivo, string clientDateTime = null)
         {
             try
             {
@@ -132,10 +133,23 @@ namespace ControlInventario.Controllers
                 Console.WriteLine($"Motivo seleccionado: '{motivoSeleccionado}'");
                 Console.WriteLine($"Otro motivo: '{otroMotivo}'");
                 Console.WriteLine($"Concepto: '{Concepto}'");
+                Console.WriteLine($"Fecha del cliente: {clientDateTime}");
                 Console.WriteLine($"Monto es null: {Monto == null}");
                 Console.WriteLine($"motivoSeleccionado es null: {motivoSeleccionado == null}");
-                Console.WriteLine($"otroMotivo es null: {otroMotivo == null}");
+                Console.WriteLine($"otroMotivo es null: {otroMotivo}");
                 Console.WriteLine($"Concepto es null: {Concepto == null}");
+
+                // Parsear fecha del cliente
+                DateTime? clientDate = null;
+                if (!string.IsNullOrEmpty(clientDateTime))
+                {
+                    string[] formats = { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm:ss" };
+                    if (DateTime.TryParseExact(clientDateTime, formats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                    {
+                        clientDate = parsedDate;
+                        Console.WriteLine($"Fecha del cliente parseada: {parsedDate}");
+                    }
+                }
                 
                 var cajaPrincipal = await _context.Cajas
                     .Where(c => c.Activa == true)
@@ -190,7 +204,7 @@ namespace ControlInventario.Controllers
                     IdCaja = cajaPrincipal.IdCaja,
                     TipoMovimiento = "I", // Ingreso (Entrada)
                     Monto = Monto,
-                    Fecha = DateTime.Now,
+                    Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                     Concepto = conceptoFinal,
                     IdUsuario = ObtenerUsuarioActual(),
                     IdReferencia = null
@@ -215,7 +229,7 @@ namespace ControlInventario.Controllers
                     concepto = conceptoFinal,
                     saldoAnterior = saldoAnterior,
                     saldoNuevo = cajaPrincipal.SaldoActual,
-                    fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                    fecha = DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(clientDate), "dd/MM/yyyy HH:mm:ss"),
                     caja = cajaPrincipal.Nombre
                 };
 
@@ -258,15 +272,28 @@ namespace ControlInventario.Controllers
         // POST: Caja/Retirar
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Retirar(decimal Monto, string Concepto, string motivoSeleccionado, string otroMotivo)
+        public async Task<IActionResult> Retirar(decimal Monto, string Concepto, string motivoSeleccionado, string otroMotivo, string clientDateTime = null)
         {
             try
             {
                 Console.WriteLine("Iniciando operación de retirar dinero de caja...");
                 Console.WriteLine($"Monto recibido: {Monto}");
-                Console.WriteLine($"Motivo seleccionado: {motivoSeleccionado}");
-                Console.WriteLine($"Otro motivo: {otroMotivo}");
-                Console.WriteLine($"Concepto: {Concepto}");
+                Console.WriteLine($"Motivo seleccionado: '{motivoSeleccionado}'");
+                Console.WriteLine($"Otro motivo: '{otroMotivo}'");
+                Console.WriteLine($"Concepto: '{Concepto}'");
+                Console.WriteLine($"Fecha del cliente: {clientDateTime}");
+
+                // Parsear fecha del cliente
+                DateTime? clientDate = null;
+                if (!string.IsNullOrEmpty(clientDateTime))
+                {
+                    string[] formats = { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm:ss" };
+                    if (DateTime.TryParseExact(clientDateTime, formats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                    {
+                        clientDate = parsedDate;
+                        Console.WriteLine($"Fecha del cliente parseada: {parsedDate}");
+                    }
+                }
                 
                 var cajaPrincipal = await _context.Cajas
                     .Where(c => c.Activa == true)
@@ -328,7 +355,7 @@ namespace ControlInventario.Controllers
                     IdCaja = cajaPrincipal.IdCaja,
                     TipoMovimiento = "E", // Egreso (Salida)
                     Monto = Monto,
-                    Fecha = DateTime.Now,
+                    Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                     Concepto = conceptoFinal,
                     IdUsuario = ObtenerUsuarioActual(),
                     IdReferencia = null
@@ -353,7 +380,7 @@ namespace ControlInventario.Controllers
                     concepto = conceptoFinal,
                     saldoAnterior = saldoAnterior,
                     saldoNuevo = cajaPrincipal.SaldoActual,
-                    fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                    fecha = DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(clientDate), "dd/MM/yyyy HH:mm:ss"),
                     caja = cajaPrincipal.Nombre
                 };
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ControlInventario.Models;
+using ControlInventario.Helpers;
 
 namespace ControlInventario.Controllers
 {
@@ -82,10 +83,21 @@ namespace ControlInventario.Controllers
         [Authorize(Roles = "Admin,Vendedor")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdProducto,Codigo,Nombre,Descripcion,PrecioIngreso,PrecioVenta,StockActual,Activo,FechaCreacion")] Producto producto)
+        public async Task<IActionResult> Create([Bind("IdProducto,Codigo,Nombre,Descripcion,PrecioIngreso,PrecioVenta,StockActual,Activo,FechaCreacion")] Producto producto, string clientDateTime = null)
         {
             try
             {
+                // Parsear fecha del cliente
+                DateTime? clientDate = null;
+                if (!string.IsNullOrEmpty(clientDateTime))
+                {
+                    string[] formats = { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm:ss" };
+                    if (DateTime.TryParseExact(clientDateTime, formats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                    {
+                        clientDate = parsedDate;
+                    }
+                }
+
                 // Validar que el código no exista
                 var codigoExistente = await _context.Productos
                     .AnyAsync(p => p.Codigo == producto.Codigo && p.IdProducto != producto.IdProducto);
@@ -97,7 +109,7 @@ namespace ControlInventario.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    producto.FechaCreacion = DateTime.Now;
+                    producto.FechaCreacion = DateTimeHelper.GetClientDateTime(clientDate);
                     producto.Activo = true;
                     
                     _context.Add(producto);
@@ -116,7 +128,7 @@ namespace ControlInventario.Controllers
                                 IdProducto = producto.IdProducto,
                                 TipoMovimiento = "E", // E para Entrada (según CHECK constraint)
                                 Cantidad = producto.StockActual,
-                                Fecha = DateTime.Now,
+                                Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                                 Referencia = "Stock inicial",
                                 IdUsuario = usuarioId
                             };
@@ -165,11 +177,22 @@ namespace ControlInventario.Controllers
         [Authorize(Roles = "Admin,Vendedor")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdProducto,Codigo,Nombre,Descripcion,PrecioIngreso,PrecioVenta,StockActual,Activo,FechaCreacion")] Producto producto)
+        public async Task<IActionResult> Edit(int id, [Bind("IdProducto,Codigo,Nombre,Descripcion,PrecioIngreso,PrecioVenta,StockActual,Activo,FechaCreacion")] Producto producto, string clientDateTime = null)
         {
             if (id != producto.IdProducto)
             {
                 return NotFound();
+            }
+
+            // Parsear fecha del cliente
+            DateTime? clientDate = null;
+            if (!string.IsNullOrEmpty(clientDateTime))
+            {
+                string[] formats = { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm:ss" };
+                if (DateTime.TryParseExact(clientDateTime, formats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                {
+                    clientDate = parsedDate;
+                }
             }
 
             // Validar que el código no exista (excepto para este mismo producto)
@@ -203,7 +226,7 @@ namespace ControlInventario.Controllers
                                 IdProducto = producto.IdProducto,
                                 TipoMovimiento = producto.StockActual > productoOriginal.StockActual ? "E" : "S", // E para Entrada, S para Salida
                                 Cantidad = Math.Abs(producto.StockActual - productoOriginal.StockActual),
-                                Fecha = DateTime.Now,
+                                Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                                 Referencia = "Ajuste de stock",
                                 IdUsuario = usuarioId
                             };

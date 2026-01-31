@@ -4,6 +4,9 @@
     var caja = ViewBag.Caja as ControlInventario.Models.Caja;
 }
 
+<!-- Incluir DateTime Helper -->
+<script src="~/js/datetime-helper.js"></script>
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -178,11 +181,16 @@
                 // Obtener el token anti-forgery
                 var token = $('input[name="__RequestVerificationToken"]').val();
                 
+                // Agregar fecha y hora del cliente
+                var clientDateTime = DateTimeClientHelper.getClientDateTime();
+                console.log('Fecha del cliente:', clientDateTime);
+                
                 var formData = {
                     Monto: parseFloat($('#Monto').val()) || 0,
                     Concepto: $('#Concepto').val() || '',
                     motivoSeleccionado: $('#motivoSeleccionado').val() || '',
                     otroMotivo: $('#otroMotivo').val() || '',
+                    clientDateTime: clientDateTime,
                     __RequestVerificationToken: token
                 };
 
