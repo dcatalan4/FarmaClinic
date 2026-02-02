@@ -212,13 +212,28 @@
                     let html = '<div class="list-group" style="position: absolute; width: 100%; max-height: 200px; overflow-y: auto;">';
                     
                     productos.forEach(producto => {
+                        // Escapar caracteres especiales para el onclick
+                        const nombreEscapado = (producto.nombre || '')
+                            .replace(/\\/g, '\\\\')
+                            .replace(/'/g, "\\'")
+                            .replace(/"/g, '\\"')
+                            .replace(/\n/g, '\\n')
+                            .replace(/\r/g, '\\r');
+                        
+                        const descripcionEscapada = (producto.descripcion || '')
+                            .replace(/\\/g, '\\\\')
+                            .replace(/'/g, "\\'")
+                            .replace(/"/g, '\\"')
+                            .replace(/\n/g, '\\n')
+                            .replace(/\r/g, '\\r');
+                        
                         html += `
-                            <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarProducto(${index}, ${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${producto.precioVenta}, ${producto.stock}, '${producto.codigo}')">
+                            <a href="#" class="list-group-item list-group-item-action" onclick="seleccionarProducto(${index}, ${producto.id}, '${nombreEscapado}', ${producto.precioVenta}, ${producto.stock}, '${producto.codigo}')">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">${producto.nombre}</h6>
                                     <small class="text-muted">Q ${producto.precioVenta.toFixed(2)}</small>
                                 </div>
-                                <p class="mb-1 text-muted small">${producto.descripcion || 'Sin descripción'}</p>
+                                <p class="mb-1 text-muted small">${descripcionEscapada || 'Sin descripción'}</p>
                                 <small class="text-muted">Código: ${producto.codigo} | Stock: ${producto.stock}</small>
                             </a>
                         `;

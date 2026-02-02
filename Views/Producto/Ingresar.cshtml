@@ -278,8 +278,23 @@
 
             let html = '<div class="list-group">';
             productos.forEach(producto => {
+                // Escapar caracteres especiales para el onclick
+                const nombreEscapado = (producto.nombre || '')
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'")
+                    .replace(/"/g, '\\"')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\r/g, '\\r');
+                
+                const descripcionEscapada = (producto.descripcion || '')
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'")
+                    .replace(/"/g, '\\"')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\r/g, '\\r');
+                
                 html += `
-                    <div class="list-group-item list-group-item-action" onclick="agregarProductoExistente(${producto.idProducto}, '${producto.codigo}', '${producto.nombre}', '${producto.descripcion || ''}', ${producto.precioIngreso}, ${producto.precioVenta}, ${producto.stockActual})">
+                    <div class="list-group-item list-group-item-action" onclick="agregarProductoExistente(${producto.idProducto}, '${producto.codigo}', '${nombreEscapado}', '${descripcionEscapada}', ${producto.precioIngreso}, ${producto.precioVenta}, ${producto.stockActual})">
                         <div class="d-flex w-100 justify-content-between">
                             <h6 class="mb-1">${producto.nombre}</h6>
                             <small class="text-muted">${producto.codigo}</small>
