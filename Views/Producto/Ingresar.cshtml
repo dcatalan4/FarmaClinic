@@ -2,6 +2,9 @@
     ViewData["Title"] = "Ingresar Productos";
 }
 
+<!-- Incluir DateTime Helper -->
+<script src="~/js/datetime-helper.js"></script>
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -501,6 +504,10 @@
 
             console.log('Enviando productos:', productosParaIngresar);
 
+            // Agregar fecha y hora del cliente
+            const clientDateTime = DateTimeClientHelper.getClientDateTime();
+            console.log('Fecha del cliente:', clientDateTime);
+
             // Asegurar que el modal esté inicializado
             if (!loadingModal) {
                 inicializarModal();
@@ -509,7 +516,10 @@
             // Mostrar modal de carga
             loadingModal.show();
 
-            fetch('@Url.Action("ProcesarIngreso", "Producto")', {
+            // Construir URL con parámetro de fecha
+            const url = `@Url.Action("ProcesarIngreso", "Producto")?clientDateTime=${encodeURIComponent(clientDateTime)}`;
+
+            fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

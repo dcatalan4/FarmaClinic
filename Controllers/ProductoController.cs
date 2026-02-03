@@ -394,11 +394,24 @@ namespace ControlInventario.Controllers
 
         // POST: Producto/ProcesarIngreso
         [HttpPost]
-        public async Task<IActionResult> ProcesarIngreso([FromBody] List<IngresoProducto> productos)
+        public async Task<IActionResult> ProcesarIngreso([FromBody] List<IngresoProducto> productos, string clientDateTime = null)
         {
             try
             {
                 Console.WriteLine("Recibiendo solicitud de procesar ingreso...");
+                Console.WriteLine($"Fecha del cliente: {clientDateTime}");
+                
+                // Parsear fecha del cliente
+                DateTime? clientDate = null;
+                if (!string.IsNullOrEmpty(clientDateTime))
+                {
+                    string[] formats = { "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm:ss" };
+                    if (DateTime.TryParseExact(clientDateTime, formats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                    {
+                        clientDate = parsedDate;
+                        Console.WriteLine($"Fecha del cliente parseada: {parsedDate}");
+                    }
+                }
                 
                 if (productos == null || !productos.Any())
                 {
@@ -444,7 +457,7 @@ namespace ControlInventario.Controllers
                             PrecioVenta = item.PrecioVenta,
                             StockActual = item.Cantidad,
                             Activo = true,
-                            FechaCreacion = DateTime.Now
+                            FechaCreacion = DateTimeHelper.GetClientDateTime(clientDate)
                         };
 
                         _context.Productos.Add(nuevoProducto);
@@ -462,7 +475,7 @@ namespace ControlInventario.Controllers
                                 IdProducto = nuevoProducto.IdProducto,
                                 TipoMovimiento = "E", // E para Entrada (según CHECK constraint)
                                 Cantidad = nuevoProducto.StockActual,
-                                Fecha = DateTime.Now,
+                                Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                                 Referencia = "Carga al inventario",
                                 IdUsuario = usuarioId
                             };
@@ -496,7 +509,7 @@ namespace ControlInventario.Controllers
                                     IdProducto = producto.IdProducto,
                                     TipoMovimiento = "E", // E para Entrada (según CHECK constraint)
                                     Cantidad = item.Cantidad,
-                                    Fecha = DateTime.Now,
+                                    Fecha = DateTimeHelper.GetClientDateTime(clientDate),
                                     Referencia = "Carga al inventario",
                                     IdUsuario = usuarioId
                                 };
@@ -591,7 +604,7 @@ namespace ControlInventario.Controllers
                     Nombre = "Administrador",
                     Rol = "Admin",
                     Activo = true,
-                    FechaCreacion = DateTime.Now
+                    FechaCreacion = DateTimeHelper.GetClientDateTime()
                 };
                 
                 _context.Usuarios.Add(usuarioDefecto);

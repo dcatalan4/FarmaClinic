@@ -372,7 +372,7 @@ namespace ControlInventario.Controllers
                         IdProducto = detalle.IdProducto,
                         TipoMovimiento = "E", // E para Entrada (devolución por anulación)
                         Cantidad = detalle.Cantidad,
-                        Fecha = DateTime.Now,
+                        Fecha = DateTimeHelper.GetClientDateTime(),
                         Referencia = $"Anulación Venta #{ventum.NumeroVenta}",
                         IdUsuario = ventum.IdUsuario
                     };
