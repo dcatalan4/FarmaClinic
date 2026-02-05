@@ -79,6 +79,26 @@
                 </div>
             </div>
 
+            @if (Model.TipoReporte == "detallado" || Model.GananciaTotal > 0)
+            {
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Ganancia Total</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.GananciaTotal.ToString("C")</div>
+                                <div class="text-xs text-muted">Margen: @Model.MargenGananciaPorcentaje.ToString("F1")%</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
             <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-info shadow h-100 py-2">
                     <div class="card-body">
@@ -94,25 +114,125 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
+        <!-- Información del Período -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-left-secondary shadow">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Período</div>
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Período del Reporte</div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">
                                     @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaInicio), "dd/MM/yyyy") - @DateTimeHelper.FormatClientDateTime(DateTimeHelper.GetClientDateTime(Model.FechaFin), "dd/MM/yyyy")
                                 </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        @if (Model.TipoReporte == "detallado" || Model.GananciaTotal > 0)
+        {
+        <!-- Desglose de Ganancias por Producto -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-warning">
+                            <i class="fas fa-chart-pie"></i> Desglose de Ganancias por Producto
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="gananciasTable">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad Vendida</th>
+                                        <th class="text-right">Precio Venta</th>
+                                        <th class="text-right">Precio Compra</th>
+                                        <th class="text-right">Ventas Totales</th>
+                                        <th class="text-right">Costo Total</th>
+                                        <th class="text-right">Ganancia</th>
+                                        <th class="text-right">Margen %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var gananciasPorProducto = Model.Ventas
+                                            .Where(v => v.Anulada != true)
+                                            .SelectMany(v => v.DetalleVenta)
+                                            .GroupBy(dv => new { 
+                                                dv.IdProducto, 
+                                                dv.IdProductoNavigation.Nombre,
+                                                PrecioVenta = dv.PrecioUnitario,
+                                                PrecioCompra = dv.IdProductoNavigation?.PrecioIngreso ?? 0
+                                            })
+                                            .Select(g => new {
+                                                Producto = g.Key.Nombre,
+                                                Cantidad = g.Sum(dv => dv.Cantidad),
+                                                PrecioVenta = g.Key.PrecioVenta,
+                                                PrecioCompra = g.Key.PrecioCompra,
+                                                VentasTotales = g.Sum(dv => dv.Subtotal),
+                                                CostoTotal = g.Sum(dv => dv.Cantidad * g.Key.PrecioCompra),
+                                                Ganancia = g.Sum(dv => (dv.PrecioUnitario - g.Key.PrecioCompra) * dv.Cantidad)
+                                            })
+                                            .OrderByDescending(x => x.Ganancia)
+                                            .ToList();
+                                    }
+                                    
+                                    @foreach (var item in gananciasPorProducto)
+                                    {
+                                        var margenPorcentaje = item.VentasTotales > 0 ? (item.Ganancia / item.VentasTotales) * 100 : 0;
+                                        <tr>
+                                            <td><strong>@item.Producto</strong></td>
+                                            <td class="text-center">@item.Cantidad</td>
+                                            <td class="text-right">@item.PrecioVenta.ToString("C")</td>
+                                            <td class="text-right">@item.PrecioCompra.ToString("C")</td>
+                                            <td class="text-right">@item.VentasTotales.ToString("C")</td>
+                                            <td class="text-right">@item.CostoTotal.ToString("C")</td>
+                                            <td class="text-right @(item.Ganancia >= 0 ? "text-success" : "text-danger")">
+                                                @item.Ganancia.ToString("C")
+                                            </td>
+                                            <td class="text-right">
+                                                <span class="badge @(margenPorcentaje >= 20 ? "bg-success" : margenPorcentaje >= 10 ? "bg-warning" : "bg-secondary")">
+                                                    @margenPorcentaje.ToString("F1")%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="font-weight-bold">
+                                        <td>TOTALES</td>
+                                        <td class="text-center">@gananciasPorProducto.Sum(x => x.Cantidad)</td>
+                                        <td class="text-right">-</td>
+                                        <td class="text-right">-</td>
+                                        <td class="text-right">@gananciasPorProducto.Sum(x => x.VentasTotales).ToString("C")</td>
+                                        <td class="text-right">@gananciasPorProducto.Sum(x => x.CostoTotal).ToString("C")</td>
+                                        <td class="text-right @(Model.GananciaTotal >= 0 ? "text-success" : "text-danger")">
+                                            @Model.GananciaTotal.ToString("C")
+                                        </td>
+                                        <td class="text-right">
+                                            <span class="badge @(Model.MargenGananciaPorcentaje >= 20 ? "bg-success" : Model.MargenGananciaPorcentaje >= 10 ? "bg-warning" : "bg-secondary")">
+                                                @Model.MargenGananciaPorcentaje.ToString("F1")%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
 
         <!-- Gráficos y Tablas -->
         <div class="row">
@@ -357,6 +477,49 @@
                         extend: 'print',
                         text: '<i class="fas fa-print"></i> Imprimir',
                         className: 'btn btn-primary btn-sm'
+                    }
+                ]
+            });
+
+            $('#gananciasTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+                },
+                "pageLength": 25,
+                "order": [[6, "desc"]], // Ordenar por ganancia descendente
+                "responsive": true,
+                "dom": "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                       "<'row'<'col-sm-12'tr>>" +
+                       "<'row'<'col-sm-12'i>>",
+                "buttons": [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-success btn-sm'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i> Imprimir',
+                        className: 'btn btn-primary btn-sm'
+                    }
+                ],
+                "columnDefs": [
+                    {
+                        "targets": [6], // Columna de ganancia
+                        "render": function(data, type, row) {
+                            if (type === 'display') {
+                                var value = parseFloat(data.replace(/[^0-9.-]/g, ''));
+                                return value >= 0 ? 
+                                    '<span class="text-success">' + data + '</span>' : 
+                                    '<span class="text-danger">' + data + '</span>';
+                            }
+                            return data;
+                        }
                     }
                 ]
             });

@@ -7,7 +7,44 @@
 <!-- Incluir DateTime Helper -->
 <script src="~/js/datetime-helper.js"></script>
 
+<!-- CSS para forzar autocomplete encima de todo -->
+<style>
+    .producto-resultados {
+        z-index: 999999 !important;
+        position: fixed !important;
+        background: white !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0.375rem !important;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175) !important;
+        max-height: 200px !important;
+        overflow-y: auto !important;
+        min-width: 300px !important;
+    }
+    
+    .producto-resultados .list-group {
+        z-index: 1000000 !important;
+        position: relative !important;
+        background: white !important;
+        border: none !important;
+        border-radius: 0.375rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Forzar que esté encima de modales y otros elementos */
+    .producto-resultados *,
+    .producto-resultados .list-group * {
+        z-index: inherit !important;
+    }
+    
+    /* Ocultar por defecto */
+    .producto-resultados.hidden {
+        display: none !important;
+    }
+</style>
+
 <div class="container-fluid">
+    <!-- Contenedor global para autocompletes fuera del flujo normal -->
+    <div id="autocompleteContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483647;"></div>
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -81,9 +118,9 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div id="productosContainer">
+                        <div id="productosContainer" style="position: relative; padding-bottom: 250px;">
                             <div class="producto-row row mb-3" data-index="0">
-                                <div class="col-md-5">
+                                <div class="col-md-5" style="position: relative;">
                                     <label class="control-label font-weight-bold">Producto</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control producto-busqueda" placeholder="Buscar por nombre o descripción..." autocomplete="off" />
@@ -92,7 +129,7 @@
                                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         </div>
                                     </div>
-                                    <div class="producto-resultados mt-1" style="position: relative; z-index: 1000;"></div>
+                                    <div class="producto-resultados mt-1"></div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="control-label font-weight-bold">Cantidad</label>
@@ -169,10 +206,33 @@
         let searchTimeout;
 
         function inicializarBuscador(index) {
+            console.log(`Buscando elementos para index ${index}`);
+            console.log(`Selector: [data-index="${index}"]`);
+            
+            // Primero buscar el row con el data-index
+            const row = document.querySelector(`[data-index="${index}"]`);
+            console.log(`Row encontrado:`, !!row);
+            
+            if (row) {
+                console.log(`Row HTML:`, row.outerHTML.substring(0, 200));
+            }
+            
             const buscador = document.querySelector(`[data-index="${index}"] .producto-busqueda`);
             const resultadosDiv = document.querySelector(`[data-index="${index}"] .producto-resultados`);
             
-            if (!buscador) return;
+            console.log(`Inicializando buscador para index ${index}:`, { 
+                row: !!row, 
+                buscador: !!buscador, 
+                resultadosDiv: !!resultadosDiv,
+                totalRows: document.querySelectorAll('.producto-row').length,
+                allDataIndexes: Array.from(document.querySelectorAll('.producto-row')).map(r => r.getAttribute('data-index'))
+            });
+            
+            if (!buscador) {
+                console.error(`No se encontró el buscador para el index ${index}`);
+                console.log(`Todos los buscadores:`, document.querySelectorAll('.producto-busqueda').length);
+                return;
+            }
 
             buscador.addEventListener('input', function() {
                 clearTimeout(searchTimeout);
@@ -202,14 +262,20 @@
         }
 
         async function buscarProductos(term, index) {
+            console.log(`=== buscarProductos llamado ===`);
+            console.log(`Term: "${term}", Index: ${index}`);
+            
             try {
                 const response = await fetch(`/Venta/BuscarProductos?term=${encodeURIComponent(term)}`);
                 const productos = await response.json();
                 
+                console.log(`Productos recibidos:`, productos.length, productos);
+                
                 const resultadosDiv = document.querySelector(`[data-index="${index}"] .producto-resultados`);
+                console.log(`ResultadosDiv encontrado:`, !!resultadosDiv);
                 
                 if (productos.length > 0) {
-                    let html = '<div class="list-group" style="position: absolute; width: 100%; max-height: 200px; overflow-y: auto;">';
+                    let html = '<div class="list-group" style="position: relative; background: white; border: none; border-radius: 0.375rem; margin: 0;">';
                     
                     productos.forEach(producto => {
                         // Escapar caracteres especiales para el onclick
@@ -241,8 +307,57 @@
                     
                     html += '</div>';
                     resultadosDiv.innerHTML = html;
+                    
+                    console.log(`HTML establecido, moviendo al contenedor global...`);
+                    
+                    // Mover el autocomplete al contenedor global
+                    const globalContainer = document.getElementById('autocompleteContainer');
+                    const buscador = document.querySelector(`[data-index="${index}"] .producto-busqueda`);
+                    const rect = buscador.getBoundingClientRect();
+                    
+                    // Guardar el índice original antes de mover
+                    resultadosDiv.setAttribute('data-original-index', index);
+                    
+                    // Mover el div de resultados al contenedor global
+                    globalContainer.appendChild(resultadosDiv);
+                    
+                    // Posicionar el autocomplete justo debajo del campo de búsqueda
+                    resultadosDiv.style.position = 'fixed';
+                    resultadosDiv.style.top = (rect.bottom + window.scrollY) + 'px';
+                    resultadosDiv.style.left = rect.left + 'px';
+                    resultadosDiv.style.width = rect.width + 'px';
+                    resultadosDiv.style.zIndex = '2147483647';
+                    resultadosDiv.style.display = 'block';
+                    resultadosDiv.style.visibility = 'visible';
+                    resultadosDiv.style.opacity = '1';
+                    resultadosDiv.style.backgroundColor = 'white';
+                    resultadosDiv.style.border = '2px solid red';
+                    resultadosDiv.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+                    resultadosDiv.style.pointerEvents = 'auto'; // Permitir interacción
+                    
+                    console.log(`Posición aplicada: top=${resultadosDiv.style.top}, left=${resultadosDiv.style.left}, width=${resultadosDiv.style.width}`);
+                    console.log(`ResultadosDiv final:`, resultadosDiv);
+                    
+                    // Ajustar también el list-group interno
+                    const listGroup = resultadosDiv.querySelector('.list-group');
+                    if (listGroup) {
+                        listGroup.style.zIndex = '2147483647';
+                        listGroup.style.position = 'relative';
+                        listGroup.style.backgroundColor = 'white';
+                        listGroup.style.border = '1px solid blue';
+                    }
                 } else {
                     resultadosDiv.innerHTML = '<div class="alert alert-info py-2">No se encontraron productos</div>';
+                    
+                    // También posicionar el mensaje de "no encontrados"
+                    const buscador = document.querySelector(`[data-index="${index}"] .producto-busqueda`);
+                    const rect = buscador.getBoundingClientRect();
+                    resultadosDiv.style.position = 'fixed';
+                    resultadosDiv.style.top = (rect.bottom + window.scrollY) + 'px';
+                    resultadosDiv.style.left = rect.left + 'px';
+                    resultadosDiv.style.width = rect.width + 'px';
+                    resultadosDiv.style.zIndex = '999999';
+                    resultadosDiv.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error al buscar productos:', error);
@@ -259,24 +374,43 @@
             
             buscador.value = nombre;
             idInput.value = id;
-            precioInput.value = precio;
-            cantidadInput.max = stock;
+            precioInput.value = precio.toFixed(2);
             cantidadInput.disabled = false;
+            cantidadInput.focus();
             
+            // Ocultar resultados
+            resultadosDiv.style.display = 'none';
             resultadosDiv.innerHTML = '';
-            
-            // Mostrar información del producto
-            document.getElementById('productoInfo').innerHTML = `
-                <div class="text-left">
-                    <p><strong>Código:</strong> ${codigo}</p>
-                    <p><strong>Nombre:</strong> ${nombre}</p>
-                    <p><strong>Precio:</strong> Q ${precio.toFixed(2)}</p>
-                    <p><strong>Stock disponible:</strong> ${stock}</p>
-                </div>
-            `;
             
             calcularSubtotal(index);
         }
+        
+        // Función para ocultar todos los resultados
+        function ocultarTodosLosResultados() {
+            document.querySelectorAll('#autocompleteContainer .producto-resultados').forEach(div => {
+                // Devolver el div a su lugar original
+                const index = div.getAttribute('data-original-index');
+                if (index) {
+                    const originalRow = document.querySelector(`[data-index="${index}"]`);
+                    if (originalRow) {
+                        const originalContainer = originalRow.querySelector('.producto-resultados');
+                        if (originalContainer) {
+                            originalContainer.appendChild(div);
+                        }
+                    }
+                }
+                
+                div.style.display = 'none';
+                div.innerHTML = '';
+            });
+        }
+        
+        // Event listener para ocultar resultados al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.producto-busqueda') && !event.target.closest('.producto-resultados')) {
+                ocultarTodosLosResultados();
+            }
+        });
 
         function agregarProducto() {
             const container = document.getElementById('productosContainer');
@@ -285,7 +419,7 @@
             newRow.setAttribute('data-index', productoIndex);
             
             newRow.innerHTML = `
-                <div class="col-md-5">
+                <div class="col-md-5" style="position: relative;">
                     <div class="input-group">
                         <input type="text" class="form-control producto-busqueda" placeholder="Buscar por nombre o descripción..." autocomplete="off" />
                         <input type="hidden" name="IdProducto[${productoIndex}]" class="producto-id" />
@@ -293,7 +427,7 @@
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                         </div>
                     </div>
-                    <div class="producto-resultados mt-1" style="position: relative; z-index: 1000;"></div>
+                    <div class="producto-resultados mt-1"></div>
                 </div>
                 <div class="col-md-2">
                     <input type="number" name="Cantidad[${productoIndex}]" class="form-control cantidad-input" min="1" value="1" onchange="calcularSubtotal(${productoIndex})" disabled />
@@ -311,10 +445,31 @@
                 </div>
             `;
             
-            container.appendChild(newRow);
+            // Insertar la nueva fila al principio del contenedor
+            if (container.firstChild) {
+                container.insertBefore(newRow, container.firstChild);
+            } else {
+                container.appendChild(newRow);
+            }
+            
+            // Agregar animación de entrada
+            newRow.style.opacity = '0';
+            newRow.style.transform = 'translateY(-20px)';
+            newRow.style.transition = 'all 0.3s ease';
+            
+            // Forzar reflow y animar
+            setTimeout(() => {
+                newRow.style.opacity = '1';
+                newRow.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Inicializar el buscador con un pequeño delay para asegurar que el DOM esté listo
+            setTimeout(() => {
+                inicializarBuscador(productoIndex - 1);
+            }, 50);
+            
             productoIndex++;
             actualizarBotonesEliminar();
-            inicializarBuscador(productoIndex - 1);
         }
 
         function eliminarProducto(index) {

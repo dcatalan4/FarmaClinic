@@ -70,8 +70,9 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">Q</span>
                                 </div>
-                                <input type="number" id="nuevoPrecioCompra" class="form-control" step="0.01" min="0">
+                                <input type="number" id="nuevoPrecioCompra" class="form-control" step="0.01" min="0" oninput="validarPrecios()">
                             </div>
+                            <small id="errorPrecioCompra" class="text-danger" style="display: none;">El precio de compra debe ser menor al precio de venta</small>
                         </div>
                         <div class="form-group">
                             <label>Precio Venta</label>
@@ -79,8 +80,9 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">Q</span>
                                 </div>
-                                <input type="number" id="nuevoPrecioVenta" class="form-control" step="0.01" min="0">
+                                <input type="number" id="nuevoPrecioVenta" class="form-control" step="0.01" min="0" oninput="validarPrecios()">
                             </div>
+                            <small id="errorPrecioVenta" class="text-danger" style="display: none;">El precio de venta debe ser mayor al precio de compra</small>
                         </div>
                         <div class="form-group">
                             <label>Cantidad a Ingresar</label>
@@ -338,6 +340,29 @@
             limpiarFormularioNuevo();
         }
 
+        // Validar precios en tiempo real
+        function validarResultados() {
+            const precioCompra = parseFloat(document.getElementById('nuevoPrecioCompra').value) || 0;
+            const precioVenta = parseFloat(document.getElementById('nuevoPrecioVenta').value) || 0;
+            const errorPrecioCompra = document.getElementById('errorPrecioCompra');
+            const errorPrecioVenta = document.getElementById('errorPrecioVenta');
+            
+            // Resetear mensajes de error
+            errorPrecioCompra.style.display = 'none';
+            errorPrecioVenta.style.display = 'none';
+            
+            // Validar que ambos precios estén ingresados
+            if (precioCompra > 0 && precioVenta > 0) {
+                if (precioCompra >= precioVenta) {
+                    errorPrecioCompra.style.display = 'block';
+                    errorPrecioVenta.style.display = 'block';
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
         // Limpiar formulario nuevo
         function limpiarFormularioNuevo() {
             document.getElementById('nuevoCodigo').value = '';
@@ -346,6 +371,10 @@
             document.getElementById('nuevoPrecioCompra').value = '';
             document.getElementById('nuevoPrecioVenta').value = '';
             document.getElementById('nuevaCantidad').value = '1';
+            
+            // Limpiar mensajes de error
+            document.getElementById('errorPrecioCompra').style.display = 'none';
+            document.getElementById('errorPrecioVenta').style.display = 'none';
         }
 
         // Agregar nuevo producto
@@ -369,6 +398,11 @@
 
             if (cantidad <= 0) {
                 alert('La cantidad debe ser mayor a cero');
+                return;
+            }
+
+            // Validar que el precio de compra sea menor al precio de venta
+            if (!validarResultados()) {
                 return;
             }
 

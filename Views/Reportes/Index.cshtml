@@ -152,11 +152,15 @@
             console.log('Primer día del mes:', primerDiaMes);
             
             $.ajax({
-                url: '/Reportes/GetEstadisticasRapidas',
+                url: '/Estadisticas/GetEstadisticasRapidas',
                 type: 'GET',
                 dataType: 'json',
-                beforeSend: function() {
-                    console.log('Enviando petición a /Reportes/GetEstadisticasRapidas');
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function(xhr) {
+                    console.log('Enviando petición a /Estadisticas/GetEstadisticasRapidas');
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                 },
                 success: function(data) {
                     console.log('Respuesta recibida:', data);
@@ -192,11 +196,20 @@
                     console.error('Status Code:', xhr.status);
                     console.error('Ready State:', xhr.readyState);
                     
-                    // Mostrar valores por defecto en caso de error
-                    $('#ventasMes').text('0');
-                    $('#montoMes').text('Q 0.00');
-                    $('#movimientosCaja').text('0');
-                    $('#movimientosInventario').text('0');
+                    // Si es error de autenticación, mostrar mensaje específico
+                    if (xhr.status === 401 || xhr.status === 403) {
+                        console.error('Error de autenticación/autorización');
+                        $('#ventasMes').text('Error');
+                        $('#montoMes').text('Error');
+                        $('#movimientosCaja').text('Error');
+                        $('#movimientosInventario').text('Error');
+                    } else {
+                        // Mostrar valores por defecto en caso de error
+                        $('#ventasMes').text('0');
+                        $('#montoMes').text('Q 0.00');
+                        $('#movimientosCaja').text('0');
+                        $('#movimientosInventario').text('0');
+                    }
                 }
             });
         }

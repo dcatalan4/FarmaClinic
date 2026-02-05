@@ -58,9 +58,10 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Q</span>
                                         </div>
-                                        <input asp-for="PrecioIngreso" class="form-control" type="number" step="0.01" min="0" />
+                                        <input asp-for="PrecioIngreso" class="form-control" type="number" step="0.01" min="0" oninput="validarResultados()" />
                                     </div>
                                     <span asp-validation-for="PrecioIngreso" class="text-danger"></span>
+                                    <small id="errorPrecioIngreso" class="text-danger" style="display: none;">El precio de compra debe ser menor al precio de venta</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -70,9 +71,10 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Q</span>
                                         </div>
-                                        <input asp-for="PrecioVenta" class="form-control" type="number" step="0.01" min="0" />
+                                        <input asp-for="PrecioVenta" class="form-control" type="number" step="0.01" min="0" oninput="validarResultados()" />
                                     </div>
                                     <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+                                    <small id="errorPrecioVenta" class="text-danger" style="display: none;">El precio de venta debe ser mayor al precio de compra</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -114,10 +116,40 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
+        // Validar precios en tiempo real
+        function validarResultados() {
+            const precioIngreso = parseFloat(document.getElementById('PrecioIngreso').value) || 0;
+            const precioVenta = parseFloat(document.getElementById('PrecioVenta').value) || 0;
+            const errorPrecioIngreso = document.getElementById('errorPrecioIngreso');
+            const errorPrecioVenta = document.getElementById('errorPrecioVenta');
+            
+            // Resetear mensajes de error
+            errorPrecioIngreso.style.display = 'none';
+            errorPrecioVenta.style.display = 'none';
+            
+            // Validar que ambos precios estén ingresados
+            if (precioIngreso > 0 && precioVenta > 0) {
+                if (precioIngreso >= precioVenta) {
+                    errorPrecioIngreso.style.display = 'block';
+                    errorPrecioVenta.style.display = 'block';
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             if (form) {
                 form.addEventListener('submit', function(e) {
+                    // Validar precios antes de enviar
+                    if (!validarResultados()) {
+                        e.preventDefault();
+                        alert('El precio de compra debe ser menor al precio de venta para obtener ganancia');
+                        return false;
+                    }
+                    
                     // Agregar fecha y hora del cliente al formulario
                     DateTimeClientHelper.addClientDateTimeToForm(form);
                     console.log('Fecha del cliente agregada al formulario de producto');
