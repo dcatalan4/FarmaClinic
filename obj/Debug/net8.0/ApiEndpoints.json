@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "ContainingType": "ControlInventario.Controllers.HealthController",
+    "Method": "Get",
+    "RelativePath": "health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
