@@ -1,6 +1,5 @@
 using ControlInventario.Models;
 using ControlInventario.Services;
-using ControlInventario.Middleware;
 using ControlInventario.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -71,6 +70,9 @@ builder.Services.AddDbContext<ControlFarmaclinicContext>(options =>
 builder.Services.AddScoped<ISaldoCajaService, SaldoCajaService>();
 builder.Services.AddScoped<IMovimientoCajaService, MovimientoCajaService>();
 
+// Agregar servicio de background para cierre diario (más eficiente que middleware)
+builder.Services.AddHostedService<CierreDiarioBackgroundService>();
+
 var app = builder.Build();
 
 // Configurar el pipeline HTTP
@@ -82,9 +84,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-// Middleware para cierre automático de días
-app.UseCierreDiarioMiddleware();
 
 app.UseRouting();
 
