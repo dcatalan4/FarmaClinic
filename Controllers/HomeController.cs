@@ -92,6 +92,19 @@ namespace ControlInventario.Controllers
                     adminModel.CrecimientoVentasMes = ((decimal)(adminModel.VentasMes - ventasMesAnterior) / ventasMesAnterior) * 100;
                 }
 
+                // Crecimiento en montos mes vs mes anterior
+                var montoMesAnterior = await _context.Venta
+                    .Where(v => v.Fecha.HasValue && 
+                               v.Fecha.Value >= primerDiaMesAnterior && 
+                               v.Fecha.Value <= ultimoDiaMesAnterior && 
+                               v.Anulada == false)
+                    .SumAsync(v => v.Total);
+
+                if (montoMesAnterior > 0)
+                {
+                    adminModel.CrecimientoMontoMes = ((adminModel.VentasMesMonto - montoMesAnterior) / montoMesAnterior) * 100;
+                }
+
                 // Caja
                 adminModel.SaldoCajaPrincipal = await _context.Cajas
                     .Where(c => c.Activa == true)
@@ -175,6 +188,20 @@ namespace ControlInventario.Controllers
                 if (ventasMesAnteriorPersonal > 0)
                 {
                     vendedorModel.MiCrecimientoVentasMes = ((decimal)(vendedorModel.MisVentasMes - ventasMesAnteriorPersonal) / ventasMesAnteriorPersonal) * 100;
+                }
+
+                // Crecimiento en montos personales mes vs mes anterior
+                var montoMesAnteriorPersonal = await _context.Venta
+                    .Where(v => v.Fecha.HasValue && 
+                               v.Fecha.Value >= primerDiaMesAnterior && 
+                               v.Fecha.Value <= ultimoDiaMesAnterior && 
+                               v.Anulada == false && 
+                               v.IdUsuario == currentUserId)
+                    .SumAsync(v => v.Total);
+
+                if (montoMesAnteriorPersonal > 0)
+                {
+                    vendedorModel.MiCrecimientoMontoMes = ((vendedorModel.MisVentasMesMonto - montoMesAnteriorPersonal) / montoMesAnteriorPersonal) * 100;
                 }
 
                 // Productos

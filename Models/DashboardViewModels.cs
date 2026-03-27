@@ -39,6 +39,7 @@ namespace ControlInventario.Models
         public decimal TicketPromedio { get; set; }
         public int ProductosSinStock { get; set; }
         public decimal CrecimientoVentasMes { get; set; }
+        public decimal CrecimientoMontoMes { get; set; }
     }
 
     public class DashboardVendedorViewModel
@@ -74,5 +75,6 @@ namespace ControlInventario.Models
         public decimal MiTicketPromedio { get; set; }
         public int MisProductosSinStock { get; set; }
         public decimal MiCrecimientoVentasMes { get; set; }
+        public decimal MiCrecimientoMontoMes { get; set; }
     }
 }
