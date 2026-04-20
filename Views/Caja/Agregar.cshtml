@@ -166,11 +166,25 @@
                 }
             });
 
-            // Formato de moneda
-            $('#Monto').on('input', function() {
+            // Formato de moneda - usar blur y change en lugar de input
+            $('#Monto').on('blur change', function() {
                 var value = $(this).val();
-                if (value && !isNaN(value)) {
-                    $(this).val(parseFloat(value).toFixed(2));
+                if (value && !isNaN(value) && value !== '') {
+                    var formattedValue = parseFloat(value).toFixed(2);
+                    $(this).val(formattedValue);
+                }
+            });
+            
+            // Prevenir que el formateo interfiera con la escritura
+            $('#Monto').on('focus', function() {
+                // Quitar formato cuando el usuario hace foco para facilitar edición
+                var value = $(this).val();
+                if (value && value.includes('.')) {
+                    // Convertir 500.00 a 500 para edición más fácil
+                    var numericValue = parseFloat(value);
+                    if (numericValue % 1 === 0) {
+                        $(this).val(numericValue.toString());
+                    }
                 }
             });
 

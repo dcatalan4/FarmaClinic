@@ -496,7 +496,13 @@ namespace ControlInventario.Controllers
                         {
                             var stockAnterior = producto.StockActual;
                             producto.StockActual += item.Cantidad;
+                            
+                            // Actualizar precios si han sido modificados
+                            producto.PrecioIngreso = item.PrecioIngreso;
+                            producto.PrecioVenta = item.PrecioVenta;
+                            
                             Console.WriteLine($"Stock actualizado: {stockAnterior} -> {producto.StockActual}");
+                            Console.WriteLine($"Precios actualizados - Compra: Q{producto.PrecioIngreso}, Venta: Q{producto.PrecioVenta}");
 
                             // Crear movimiento de inventario solo si hay cantidad
                             if (item.Cantidad > 0)

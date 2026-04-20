@@ -166,12 +166,12 @@
                 }
             });
 
-            // Formato de moneda y validación de saldo
-            $('#Monto').on('input', function() {
+            // Formato de moneda y validación de saldo - usar blur y change en lugar de input
+            $('#Monto').on('blur change', function() {
                 var value = $(this).val();
                 var maxSaldo = parseFloat('@caja?.SaldoActual');
                 
-                if (value && !isNaN(value)) {
+                if (value && !isNaN(value) && value !== '') {
                     var amount = parseFloat(value);
                     if (amount > maxSaldo) {
                         $(this).val(maxSaldo.toFixed(2));
@@ -181,6 +181,20 @@
                         $(this).removeClass('is-invalid');
                     }
                 }
+            });
+            
+            // Prevenir que el formateo interfiera con la escritura
+            $('#Monto').on('focus', function() {
+                // Quitar formato cuando el usuario hace foco para facilitar edición
+                var value = $(this).val();
+                if (value && value.includes('.')) {
+                    // Convertir 500.00 a 500 para edición más fácil
+                    var numericValue = parseFloat(value);
+                    if (numericValue % 1 === 0) {
+                        $(this).val(numericValue.toString());
+                    }
+                }
+                $(this).removeClass('is-invalid');
             });
 
             // Manejar envío del formulario con AJAX
